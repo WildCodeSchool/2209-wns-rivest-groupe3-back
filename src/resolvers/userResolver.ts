@@ -6,8 +6,12 @@ import dataSource from '../utils'
 @Resolver(User)
 export class UserResolver {
   @Query(() => [User])
-  async getAlllUsers(): Promise<User[]> {
-    return await dataSource.manager.find(User)
+  async getAllUsers(): Promise<User[]> {
+    return await dataSource.manager.find(User, {
+      relations: {
+        blogs: true,
+      },
+    })
   }
 
   @Mutation(() => User)
