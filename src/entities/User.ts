@@ -3,8 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
+import { Blog } from './Blog'
 
 @ObjectType()
 @Entity()
@@ -52,4 +54,8 @@ export class User {
   @Field({ nullable: true })
   @Column({ type: 'timestamp with time zone', nullable: true })
   lastLogin: Date
+
+  @Field(() => [Blog])
+  @OneToMany(() => Blog, (blog) => blog.user)
+  blogs: Blog[]
 }
