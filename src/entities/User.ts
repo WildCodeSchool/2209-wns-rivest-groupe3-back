@@ -25,23 +25,31 @@ export class User {
   @Column({ type: 'varchar', nullable: false })
   password: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ type: 'varchar', nullable: true })
   city: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ type: 'varchar', nullable: true })
   firstName: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ type: 'varchar', nullable: true })
   lastName: string
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  description: string
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  avatar: string
 
   @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ type: 'timestamp with time zone', nullable: true })
   lastLogin: Date
 }
