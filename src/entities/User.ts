@@ -38,10 +38,10 @@ export class User {
   lastName: string
 
   @Field()
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
 
   @Field()
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp with time zone', nullable: true })
   lastLogin: Date
 }
