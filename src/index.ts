@@ -5,13 +5,23 @@ import datasource from './utils'
 import { UserResolver } from './resolvers/userResolver'
 import { BlogResolver } from './resolvers/blogResolver'
 import { ArticleResolver } from './resolvers/articleResolver'
+import { CommentResolver } from './resolvers/commentResolver'
+import { CategoryResolver } from './resolvers/categoryResolver'
+import { TagResolver } from './resolvers/tagResolver'
 
 const port = 5000
 
 const start = async (): Promise<void> => {
   await datasource.initialize()
   const schema = await buildSchema({
-    resolvers: [UserResolver, BlogResolver, ArticleResolver],
+    resolvers: [
+      UserResolver,
+      BlogResolver,
+      ArticleResolver,
+      CommentResolver,
+      CategoryResolver,
+      TagResolver,
+    ],
   })
   const server = new ApolloServer({ schema })
 
