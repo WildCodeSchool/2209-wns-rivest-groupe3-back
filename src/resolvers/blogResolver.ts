@@ -24,6 +24,22 @@ export class BlogResolver {
     }
   }
 
+  @Query(() => [Blog])
+  async getAllBlogs(): Promise<Blog[]> {
+    try {
+      const blogs = await dataSource.manager.find(Blog, {
+        relations: {
+          articles: {
+            content: true,
+          },
+        },
+      })
+      return blogs
+    } catch (error) {
+      throw new Error('Something went wrong')
+    }
+  }
+
   @Mutation(() => Blog)
   async createBlog(
     @Arg('name') name: string,
