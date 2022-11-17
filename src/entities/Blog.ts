@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
 import { User } from './User'
+import { Article } from './Article'
 
 @ObjectType()
 @Entity()
@@ -35,4 +37,8 @@ export class Blog {
     onDelete: 'CASCADE',
   })
   user: User
+
+  @Field(() => [Article])
+  @OneToMany(() => Article, (article) => article.blog)
+  articles: Article[]
 }
