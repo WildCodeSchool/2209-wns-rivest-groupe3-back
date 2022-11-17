@@ -51,16 +51,16 @@ export class Article {
   @OneToMany(() => Content, (content) => content.article)
   content: Content[]
 
-  @Field(() => [Comment])
+  @Field(() => [Comment], { nullable: true })
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Comment[]
 
-  @Field(() => [Category])
+  @Field(() => [Category], { nullable: true })
   @ManyToMany(() => Category)
   @JoinTable()
   categories: Category[]
 
-  @Field(() => [Tag])
+  @Field(() => [Tag], { nullable: true })
   @ManyToMany(() => Tag)
   @JoinTable()
   tags: Tag[]
