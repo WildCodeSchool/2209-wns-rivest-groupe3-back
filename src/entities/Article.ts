@@ -9,6 +9,7 @@ import {
 import { Field, ObjectType } from 'type-graphql'
 import { Blog } from './Blog'
 import { Content } from './Content'
+import { Comment } from './Comment'
 
 @ObjectType()
 @Entity()
@@ -45,4 +46,8 @@ export class Article {
   @Field(() => [Content])
   @OneToMany(() => Content, (content) => content.article)
   content: Content[]
+
+  @Field(() => [Comment])
+  @OneToMany(() => Comment, (comment) => comment.article)
+  comments: Comment[]
 }

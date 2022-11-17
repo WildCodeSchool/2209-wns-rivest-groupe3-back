@@ -3,6 +3,7 @@ import { User } from './entities/User'
 import { Blog } from './entities/Blog'
 import { Article } from './entities/Article'
 import { Content } from './entities/Content'
+import { Comment } from './entities/Comment'
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -12,7 +13,7 @@ const dataSource = new DataSource({
   password: 'example',
   database: 'postgres',
   synchronize: true,
-  entities: [User, Blog, Article, Content],
+  entities: [User, Blog, Article, Content, Comment],
   logging: ['error'],
 })
 

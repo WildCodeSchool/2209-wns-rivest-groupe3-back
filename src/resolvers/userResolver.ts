@@ -5,6 +5,7 @@ import dataSource from '../utils'
 
 @Resolver(User)
 export class UserResolver {
+  // TODO : change this query to something useful
   @Query(() => [User])
   async getAllUsers(): Promise<User[]> {
     return await dataSource.manager.find(User, {
