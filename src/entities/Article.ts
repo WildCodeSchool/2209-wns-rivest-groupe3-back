@@ -5,11 +5,15 @@ import {
   CreateDateColumn,
   OneToMany,
   ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
 import { Blog } from './Blog'
 import { Content } from './Content'
 import { Comment } from './Comment'
+import { Category } from './Category'
+import { Tag } from './Tag'
 
 @ObjectType()
 @Entity()
@@ -50,4 +54,14 @@ export class Article {
   @Field(() => [Comment])
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Comment[]
+
+  @Field(() => [Category])
+  @ManyToMany(() => Category)
+  @JoinTable()
+  categories: Category[]
+
+  @Field(() => [Tag])
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  tags: Tag[]
 }
