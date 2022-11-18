@@ -1,13 +1,20 @@
 import * as argon2 from 'argon2'
-import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { User } from '../entities/User'
 import dataSource from '../utils'
+import jwt from 'jsonwebtoken'
 
 @Resolver(User)
 export class UserResolver {
+  @Authorized()
+  // TODO : change this query to something useful
   @Query(() => [User])
-  async getAlllUsers(): Promise<User[]> {
-    return await dataSource.manager.find(User)
+  async getAllUsers(): Promise<User[]> {
+    return await dataSource.manager.find(User, {
+      relations: {
+        blogs: true,
+      },
+    })
   }
 
   @Mutation(() => User)
@@ -34,5 +41,33 @@ export class UserResolver {
 
     const userFromDb = await dataSource.manager.save(User, newUser)
     return userFromDb
+  }
+
+  @Query(() => String)
+  async getToken(
+    @Arg('email') email: string,
+    @Arg('password') password: string
+  ): Promise<string> {
+    try {
+      const userFromDB = await dataSource.manager.findOneByOrFail(User, {
+        email,
+      })
+      if (process.env.JWT_SECRET_KEY === undefined) {
+        throw new Error()
+      }
+
+      if (await argon2.verify(userFromDB.password, password)) {
+        const token = jwt.sign(
+          { email: userFromDB.email },
+          process.env.JWT_SECRET_KEY
+        )
+        return token
+      } else {
+        throw new Error()
+      }
+    } catch (err) {
+      console.error(err)
+      throw new Error('Invalid Auth')
+    }
   }
 }
