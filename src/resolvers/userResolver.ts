@@ -7,9 +7,14 @@ import jwt from 'jsonwebtoken'
 @Resolver(User)
 export class UserResolver {
   @Authorized()
+  // TODO : change this query to something useful
   @Query(() => [User])
-  async getAlllUsers(): Promise<User[]> {
-    return await dataSource.manager.find(User)
+  async getAllUsers(): Promise<User[]> {
+    return await dataSource.manager.find(User, {
+      relations: {
+        blogs: true,
+      },
+    })
   }
 
   @Mutation(() => User)
