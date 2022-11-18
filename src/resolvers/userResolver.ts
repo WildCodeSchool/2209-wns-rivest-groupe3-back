@@ -1,11 +1,12 @@
 import * as argon2 from 'argon2'
-import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { User } from '../entities/User'
 import dataSource from '../utils'
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken'
 
 @Resolver(User)
 export class UserResolver {
+  @Authorized()
   @Query(() => [User])
   async getAlllUsers(): Promise<User[]> {
     return await dataSource.manager.find(User)
@@ -47,7 +48,6 @@ export class UserResolver {
         email,
       })
       if (process.env.JWT_SECRET_KEY === undefined) {
-        console.log(process.env.JWT_SECRET_KEY)
         throw new Error()
       }
 
@@ -61,7 +61,7 @@ export class UserResolver {
         throw new Error()
       }
     } catch (err) {
-      console.log(err)
+      console.error(err)
       throw new Error('Invalid Auth')
     }
   }

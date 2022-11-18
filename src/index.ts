@@ -3,46 +3,45 @@ import { ApolloServer } from 'apollo-server'
 import { buildSchema } from 'type-graphql'
 import { UserResolver } from './resolvers/userResolver'
 import datasource from './utils'
-import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
+import jwt from 'jsonwebtoken'
+import * as dotenv from 'dotenv'
 
-dotenv.config();
+dotenv.config()
 
-const port = process.env.PORT ?? 5000;
+const port = process.env.PORT ?? 5000
 
 const start = async (): Promise<void> => {
   await datasource.initialize()
-  const schema = await buildSchema({ 
+  const schema = await buildSchema({
     resolvers: [UserResolver],
     authChecker: ({ context }) => {
-      console.log("context", context)
-      if(context.email  === undefined) return false
-      else return true;
-    }
+      if (context.email === undefined) return false
+      else return true
+    },
   })
-  const server = new ApolloServer({ 
+  const server = new ApolloServer({
     schema,
     context: ({ req }) => {
       if (
         req.headers.authorization === undefined ||
         process.env.JWT_SECRET_KEY === undefined
-      ) return {};
+      )
+        return {}
       else {
         try {
-          const bearer = req.headers.authorization;
-          console.log(req.headers.authorization)
+          const bearer = req.headers.authorization
           if (bearer.length > 0) {
-            const user = jwt.verify(bearer, process.env.JWT_SECRET_KEY);
-            return user;
+            const user = jwt.verify(bearer, process.env.JWT_SECRET_KEY)
+            return user
           } else {
-            return {};
+            return {}
           }
         } catch (err) {
-          console.error(err);
-          return {};
+          console.error(err)
+          return {}
         }
       }
-    }
+    },
   })
 
   try {
