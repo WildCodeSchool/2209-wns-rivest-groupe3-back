@@ -18,14 +18,14 @@ const port = process.env.PORT ?? 5000
 const start = async (): Promise<void> => {
   await datasource.initialize()
   const schema = await buildSchema({
-resolvers: [
-  UserResolver,
-  BlogResolver,
-  ArticleResolver,
-  CommentResolver,
-  CategoryResolver,
-  TagResolver,
-],
+    resolvers: [
+      UserResolver,
+      BlogResolver,
+      ArticleResolver,
+      CommentResolver,
+      CategoryResolver,
+      TagResolver,
+    ],
     authChecker: ({ context }) => {
       if (context.email === undefined) return false
       else return true
