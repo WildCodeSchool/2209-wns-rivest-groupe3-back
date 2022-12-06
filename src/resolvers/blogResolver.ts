@@ -14,7 +14,7 @@ export class BlogResolver {
         },
         relations: {
           articles: {
-            content: true,
+            articleContent: true,
           },
         },
       })
@@ -30,7 +30,7 @@ export class BlogResolver {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
           articles: {
-            content: true,
+            articleContent: true,
           },
         },
       })

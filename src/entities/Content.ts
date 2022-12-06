@@ -18,7 +18,7 @@ export class Content {
   @Column({ type: 'int' })
   version: number
 
-  @ManyToOne(() => Article, (article) => article.content, {
+  @ManyToOne(() => Article, (article) => article.articleContent, {
     onDelete: 'CASCADE',
   })
   article: Article
