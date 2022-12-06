@@ -11,6 +11,42 @@ import { Blog } from '../entities/Blog'
 import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
 
+@InputType()
+class IContentBlockData {
+  @Field({ nullable: true })
+  text?: string
+
+  @Field({ nullable: true })
+  level?: number
+
+  @Field({ nullable: true })
+  style?: string
+
+  @Field((type) => [String], { nullable: true })
+  items?: string[]
+}
+@InputType()
+class IContentBlock {
+  @Field()
+  id: string
+
+  @Field()
+  type: string
+
+  @Field((type) => IContentBlockData)
+  data: IContentBlockData
+}
+@InputType()
+class IContentType {
+  @Field()
+  time: number
+
+  @Field()
+  version: string
+
+  @Field((type) => [IContentBlock])
+  blocks: IContentBlock[]
+}
 @ArgsType()
 class NewArticleArgs {
   @Field((type) => Number)
