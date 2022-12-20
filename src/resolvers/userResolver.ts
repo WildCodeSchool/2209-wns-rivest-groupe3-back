@@ -77,6 +77,10 @@ export class UserResolver {
           { email: userFromDB.email, userId: userFromDB.id },
           process.env.JWT_SECRET_KEY
         )
+
+        userFromDB.lastLogin = new Date()
+        await dataSource.manager.save(userFromDB)
+
         const user = new LoginResponse()
         user.user = userFromDB
         user.token = token
