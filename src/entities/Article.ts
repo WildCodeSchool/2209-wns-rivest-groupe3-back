@@ -19,8 +19,8 @@ import { Tag } from './Tag'
 @Entity()
 export class Article {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })
@@ -49,7 +49,7 @@ export class Article {
 
   @Field(() => [Content])
   @OneToMany(() => Content, (content) => content.article)
-  content: Content[]
+  articleContent: Content[]
 
   @Field(() => [Comment], { nullable: true })
   @OneToMany(() => Comment, (comment) => comment.article)

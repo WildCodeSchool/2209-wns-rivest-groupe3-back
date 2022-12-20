@@ -5,8 +5,8 @@ import { Field, ObjectType } from 'type-graphql'
 @Entity()
 export class Category {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @Column({ type: 'varchar' })
