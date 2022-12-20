@@ -1,33 +1,93 @@
-import { Arg, Mutation, Resolver } from 'type-graphql'
+import {
+  Args,
+  ArgsType,
+  Field,
+  InputType,
+  Mutation,
+  Resolver,
+} from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
 
+@InputType()
+class IContentBlockData {
+  @Field({ nullable: true })
+  text?: string
+
+  @Field({ nullable: true })
+  level?: number
+
+  @Field({ nullable: true })
+  style?: string
+
+  @Field((type) => [String], { nullable: true })
+  items?: string[]
+}
+@InputType()
+class IContentBlock {
+  @Field()
+  id: string
+
+  @Field()
+  type: string
+
+  @Field((type) => IContentBlockData)
+  data: IContentBlockData
+}
+@InputType()
+class IContentType {
+  @Field()
+  time: number
+
+  @Field()
+  version: string
+
+  @Field((type) => [IContentBlock])
+  blocks: IContentBlock[]
+}
+@ArgsType()
+class NewArticleArgs {
+  @Field((type) => Number)
+  blogId: number
+
+  @Field()
+  show: boolean
+
+  @Field()
+  version: number
+
+  @Field({ nullable: true })
+  postedAt: Date
+
+  @Field({ nullable: true })
+  country: string
+
+  @Field()
+  articleContent: IContentType
+}
+
 @Resolver(Article)
 export class ArticleResolver {
   @Mutation(() => Article)
   async createArticle(
-    @Arg('blogId') blogId: number,
-    @Arg('show') show: boolean,
-    @Arg('version') version: number,
-    @Arg('content') content: string,
-    @Arg('postedAt') postedAt: Date,
-    @Arg('country', { nullable: true }) country: string
+    @Args()
+    { blogId, show, version, postedAt, country, articleContent }: NewArticleArgs
   ): Promise<Article> {
     try {
       const newArticle = new Article()
       newArticle.show = show
       newArticle.country = country
       newArticle.version = version
-      newArticle.postedAt = postedAt
+      newArticle.postedAt = postedAt !== null ? postedAt : new Date()
 
       const newContent = new Content()
       newContent.version = version
-      newContent.content = content
+      newContent.content = articleContent
       const savedContent = await dataSource.manager.save(newContent)
 
-      newArticle.content = [savedContent]
+      newArticle.articleContent = [savedContent]
 
       const blog = await dataSource.manager.findOneByOrFail(Blog, {
         id: blogId,
