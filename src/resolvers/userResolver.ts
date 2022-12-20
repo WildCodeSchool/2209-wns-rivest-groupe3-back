@@ -1,13 +1,29 @@
 import * as argon2 from 'argon2'
-import { Arg, Authorized, Mutation, Query, Resolver } from 'type-graphql'
+import {
+  Arg,
+  Authorized,
+  Field,
+  Mutation,
+  ObjectType,
+  Query,
+  Resolver,
+} from 'type-graphql'
 import { User } from '../entities/User'
 import dataSource from '../utils'
 import jwt from 'jsonwebtoken'
 
+@ObjectType()
+class LoginResponse {
+  @Field()
+  token: string
+  
+  @Field(() => User)
+  user: User
+}
+
 @Resolver(User)
 export class UserResolver {
   @Authorized()
-  // TODO : change this query to something useful
   @Query(() => [User])
   async getAllUsers(): Promise<User[]> {
     return await dataSource.manager.find(User, {
@@ -43,11 +59,11 @@ export class UserResolver {
     return userFromDb
   }
 
-  @Query(() => String)
+  @Mutation(() => LoginResponse)
   async getToken(
     @Arg('email') email: string,
     @Arg('password') password: string
-  ): Promise<string> {
+  ): Promise<LoginResponse> {
     try {
       const userFromDB = await dataSource.manager.findOneByOrFail(User, {
         email,
@@ -61,7 +77,10 @@ export class UserResolver {
           { email: userFromDB.email },
           process.env.JWT_SECRET_KEY
         )
-        return token
+        const user = new LoginResponse()
+        user.user = userFromDB
+        user.token = token
+        return user
       } else {
         throw new Error()
       }

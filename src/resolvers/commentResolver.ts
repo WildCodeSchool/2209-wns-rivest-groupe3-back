@@ -8,7 +8,7 @@ export class CommentResolver {
   @Mutation(() => Comment)
   async commentArticle(
     @Arg('content') content: string,
-    @Arg('articleId') articleId: number
+    @Arg('articleId') articleId: string
   ): Promise<Comment> {
     try {
       const newComment = new Comment()
