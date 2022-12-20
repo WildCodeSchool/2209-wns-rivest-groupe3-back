@@ -6,7 +6,7 @@ import { User } from '../entities/User'
 @Resolver(Blog)
 export class BlogResolver {
   @Query(() => Blog)
-  async getBlog(@Arg('blogId') blogId: number): Promise<Blog> {
+  async getBlog(@Arg('blogId') blogId: string): Promise<Blog> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
@@ -14,7 +14,7 @@ export class BlogResolver {
         },
         relations: {
           articles: {
-            content: true,
+            articleContent: true,
           },
         },
       })
@@ -30,7 +30,7 @@ export class BlogResolver {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
           articles: {
-            content: true,
+            articleContent: true,
           },
         },
       })
@@ -44,7 +44,7 @@ export class BlogResolver {
   async createBlog(
     @Arg('name') name: string,
     @Arg('description') description: string,
-    @Arg('userId') userId: number,
+    @Arg('userId') userId: string,
     @Arg('template', { nullable: true }) template?: string
   ): Promise<Blog> {
     try {

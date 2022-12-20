@@ -15,8 +15,8 @@ import { Comment } from './Comment'
 @Entity()
 export class Blog {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @Column({ type: 'varchar', unique: true })
