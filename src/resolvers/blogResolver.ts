@@ -1,4 +1,4 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
@@ -42,13 +42,13 @@ export class BlogResolver {
 
   @Mutation(() => Blog)
   async createBlog(
+    @Ctx() context: { userId: string; email: string },
     @Arg('name') name: string,
     @Arg('description') description: string,
-    @Arg('userId') userId: string,
     @Arg('template', { nullable: true }) template?: string
   ): Promise<Blog> {
     try {
-      // TODO : Get user from token
+      const { userId } = context
       const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })
