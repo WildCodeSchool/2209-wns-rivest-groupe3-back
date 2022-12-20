@@ -14,8 +14,8 @@ import { Blog } from './Blog'
 @Entity()
 export class Comment {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })

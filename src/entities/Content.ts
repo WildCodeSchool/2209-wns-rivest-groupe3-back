@@ -45,10 +45,9 @@ class ContentType {
 @Entity()
 export class Content {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
-  // TODO : see if we can type this better
   @Field()
   @Column({ type: 'json' })
   content: ContentType

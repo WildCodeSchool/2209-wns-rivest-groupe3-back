@@ -49,8 +49,8 @@ class IContentType {
 }
 @ArgsType()
 class NewArticleArgs {
-  @Field((type) => Number)
-  blogId: number
+  @Field((type) => String)
+  blogId: string
 
   @Field()
   show: boolean

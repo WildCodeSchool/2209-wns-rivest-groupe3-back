@@ -19,8 +19,8 @@ import { Tag } from './Tag'
 @Entity()
 export class Article {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })

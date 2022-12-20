@@ -13,8 +13,8 @@ import { Comment } from './Comment'
 @Entity()
 export class User {
   @Field()
-  @PrimaryGeneratedColumn()
-  id: number
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @Column({ type: 'varchar', nullable: false, unique: true })
