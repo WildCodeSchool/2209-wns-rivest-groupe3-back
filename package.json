@@ -15,7 +15,9 @@
     "apollo-server": "^3.10.3",
     "argon2": "^0.30.2",
     "class-validator": "^0.13.2",
+    "dotenv": "^16.0.3",
     "graphql": "^15.8.0",
+    "jsonwebtoken": "^8.5.1",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^1.1.1",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
+    "@types/jsonwebtoken": "^8.5.9",
     "@typescript-eslint/eslint-plugin": "^5.36.1",
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",

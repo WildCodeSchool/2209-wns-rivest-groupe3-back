@@ -24,7 +24,6 @@ export class User {
   @Column({ type: 'varchar', nullable: false, unique: true })
   nickname: string
 
-  @Field()
   @Column({ type: 'varchar', nullable: false })
   password: string
 
