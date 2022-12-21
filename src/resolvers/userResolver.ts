@@ -16,7 +16,7 @@ import jwt from 'jsonwebtoken'
 class LoginResponse {
   @Field()
   token: string
-  
+
   @Field(() => User)
   user: User
 }
@@ -74,9 +74,13 @@ export class UserResolver {
 
       if (await argon2.verify(userFromDB.password, password)) {
         const token = jwt.sign(
-          { email: userFromDB.email },
+          { email: userFromDB.email, userId: userFromDB.id },
           process.env.JWT_SECRET_KEY
         )
+
+        userFromDB.lastLogin = new Date()
+        await dataSource.manager.save(userFromDB)
+
         const user = new LoginResponse()
         user.user = userFromDB
         user.token = token

@@ -27,7 +27,10 @@ const start = async (): Promise<void> => {
       TagResolver,
     ],
     authChecker: ({ context }) => {
-      if (context.email === undefined) return false
+      const {
+        userFromToken: { email },
+      } = context
+      if (email === undefined) return false
       else return true
     },
   })
@@ -43,8 +46,8 @@ const start = async (): Promise<void> => {
         try {
           const bearer = req.headers.authorization
           if (bearer.length > 0) {
-            const user = jwt.verify(bearer, process.env.JWT_SECRET_KEY)
-            return user
+            const userFromToken = jwt.verify(bearer, process.env.JWT_SECRET_KEY)
+            return { userFromToken }
           } else {
             return {}
           }

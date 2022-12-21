@@ -1,6 +1,8 @@
 import {
   Args,
   ArgsType,
+  Authorized,
+  Ctx,
   Field,
   InputType,
   Mutation,
@@ -70,12 +72,20 @@ class NewArticleArgs {
 
 @Resolver(Article)
 export class ArticleResolver {
+  @Authorized()
   @Mutation(() => Article)
   async createArticle(
+    @Ctx() context: { userId: string; email: string },
     @Args()
     { blogId, show, version, postedAt, country, articleContent }: NewArticleArgs
   ): Promise<Article> {
     try {
+      const blog = await dataSource.manager.findOneByOrFail(Blog, {
+        id: blogId,
+      })
+      if (blog.user.id !== context.userId) {
+        throw new Error('You are not authorized to update this blog..')
+      }
       const newArticle = new Article()
       newArticle.show = show
       newArticle.country = country
@@ -85,13 +95,10 @@ export class ArticleResolver {
       const newContent = new Content()
       newContent.version = version
       newContent.content = articleContent
-      const savedContent = await dataSource.manager.save(newContent)
 
+      const savedContent = await dataSource.manager.save(newContent)
       newArticle.articleContent = [savedContent]
 
-      const blog = await dataSource.manager.findOneByOrFail(Blog, {
-        id: blogId,
-      })
       newArticle.blog = blog
 
       const newArticleFromDb = await dataSource.manager.save(newArticle)
