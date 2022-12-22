@@ -7,12 +7,12 @@ Please include a description of the changes and the related issue. Please also i
 ## What I've done / The solution
 Description of what I did/modified
 
-## Scop of my changes
+## Scope of my changes
 Add the name of the files you just worked on.
 e.g. login.tsx / index.js / etc.
 
 ## Task
-- [b00-t00:](link to issue)
+- [e00-t00:](link to issue)
 
 ## Type of change
 - [ ] New feature (feat)
@@ -29,10 +29,8 @@ e.g. login.tsx / index.js / etc.
 - [ ] I have remover TODO comments
 - [ ] I have commented in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
-
 - [ ] I have been able to build my solution locally
 - [ ] My changes generate no new warnings
-
 - [ ] New and existing unit tests pass locally with my changes
 
 # Communication
@@ -44,7 +42,7 @@ Something special like a warning about this PR
 (Delete if no relevant)
 
 ## The EPIC feature
-Short descrpition of the Epic and its purpose.
+Short description of the Epic and its purpose.
 
 ## Type of change
 - [ ] New feature (feat)
