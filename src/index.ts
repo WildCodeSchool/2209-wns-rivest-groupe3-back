@@ -27,10 +27,8 @@ const start = async (): Promise<void> => {
       TagResolver,
     ],
     authChecker: ({ context }) => {
-      const {
-        userFromToken: { email },
-      } = context
-      if (email === undefined) return false
+      const { userFromToken: { email } = { email: null } } = context
+      if (email === null) return false
       else return true
     },
   })
