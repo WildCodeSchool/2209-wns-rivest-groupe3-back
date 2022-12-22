@@ -75,6 +75,21 @@ describe('Blog resolver', () => {
     expect(res.data?.createBlog.createdAt).toMatch(timeStampStringRegex)
   })
 
+  it('fails to create a blog without a token', async () => {
+    const res = await client.mutate({
+      mutation: CREATE_BLOG,
+      variables: {
+        name: 'My Test Blog',
+        description: 'A test description for a blog',
+      },
+    })
+    const errorMessage = res.errors?.[0]?.message
+    expect(res.errors).toHaveLength(1)
+    expect(errorMessage).toBe(
+      'Access denied! You need to be authorized to perform this action!'
+    )
+  })
+
   it('gets all blogs', async () => {
     const res = await client.query({
       query: GET_ALL_BLOGS,
