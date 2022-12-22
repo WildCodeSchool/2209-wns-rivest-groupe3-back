@@ -34,6 +34,20 @@ export class UserResolver {
     })
   }
 
+  @Query(() => User)
+  async getOneUser(
+    @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('nickname') nickname: string,
+    @Arg('description', { nullable: true }) description: string
+  ): Promise<User> {
+    return await dataSource.manager.findOneOrFail(User, {
+      where: { nickname },
+      relations: {
+        blogs: true,
+      },
+    })
+  }
+
   @Mutation(() => User)
   async createUser(
     @Arg('email') email: string,
