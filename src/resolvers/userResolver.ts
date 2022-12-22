@@ -1,4 +1,5 @@
 import * as argon2 from 'argon2'
+import { UserInputError, AuthenticationError } from 'apollo-server'
 import {
   Arg,
   Authorized,
@@ -44,6 +45,19 @@ export class UserResolver {
     @Arg('firstName', { nullable: true }) firstName: string,
     @Arg('lastName', { nullable: true }) lastName: string
   ): Promise<User> {
+    const userEmailExists = await dataSource.manager.findOneBy(User, {
+      email,
+    })
+    if (userEmailExists != null) {
+      throw new UserInputError('Un compte existe déjà avec cette adresse email')
+    }
+    const userNicknameExists = await dataSource.manager.findOneBy(User, {
+      nickname,
+    })
+    if (userNicknameExists != null) {
+      throw new UserInputError('Ce pseudo est déjà pris')
+    }
+
     const newUser = new User()
     newUser.email = email
     newUser.nickname = nickname
@@ -64,14 +78,16 @@ export class UserResolver {
     @Arg('email') email: string,
     @Arg('password') password: string
   ): Promise<LoginResponse> {
+    const userFromDB = await dataSource.manager.findOneBy(User, {
+      email,
+    })
+    if (process.env.JWT_SECRET_KEY === undefined) {
+      throw new AuthenticationError('No secret key')
+    }
+    if (userFromDB === null) {
+      throw new AuthenticationError('No user found')
+    }
     try {
-      const userFromDB = await dataSource.manager.findOneByOrFail(User, {
-        email,
-      })
-      if (process.env.JWT_SECRET_KEY === undefined) {
-        throw new Error()
-      }
-
       if (await argon2.verify(userFromDB.password, password)) {
         const token = jwt.sign(
           { email: userFromDB.email, userId: userFromDB.id },
@@ -86,11 +102,10 @@ export class UserResolver {
         user.token = token
         return user
       } else {
-        throw new Error()
+        throw new Error('Wrong password')
       }
-    } catch (err) {
-      console.error(err)
-      throw new Error('Invalid Auth')
+    } catch (err: any) {
+      throw new AuthenticationError(err.message)
     }
   }
 }
