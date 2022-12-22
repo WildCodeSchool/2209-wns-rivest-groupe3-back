@@ -45,7 +45,7 @@ export class BlogResolver {
     @Ctx() context: { userId: string; email: string },
     @Arg('name') name: string,
     @Arg('description') description: string,
-    @Arg('template', { nullable: true }) template?: string
+    @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
       const { userId } = context
