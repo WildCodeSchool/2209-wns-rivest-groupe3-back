@@ -1,9 +1,10 @@
-import { Arg, Mutation, Resolver } from 'type-graphql'
+import { Arg, Authorized, Mutation, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Tag } from '../entities/Tag'
 
 @Resolver(Tag)
 export class TagResolver {
+  @Authorized()
   @Mutation(() => Tag)
   async createTag(@Arg('name') name: string): Promise<Tag> {
     try {
