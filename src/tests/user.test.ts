@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client/core'
 import client from './clientUtil'
-import { prepareUserTable } from './prepareDatabase'
+import { prepareUserTable, destroyConnection } from './prepareDatabase'
 
 const CREATE_USER = gql`
   mutation createUser($email: String!, $password: String!, $nickname: String!) {
@@ -42,6 +42,10 @@ describe('User resolver', () => {
   // Setup the database before running the tests
   beforeAll(async () => {
     await prepareUserTable()
+  })
+  // Close the database connection after running the tests
+  afterAll(async () => {
+    await destroyConnection()
   })
 
   it('creates a user', async () => {

@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client/core'
 import client from './clientUtil'
-import { prepareBlogTable } from './prepareDatabase'
+import { prepareBlogTable, destroyConnection } from './prepareDatabase'
 
 const GET_TOKEN = gql`
   mutation getToken($email: String!, $password: String!) {
@@ -51,6 +51,10 @@ describe('Blog resolver', () => {
   // Setup the database before running the tests
   beforeAll(async () => {
     await prepareBlogTable()
+  })
+  // Close the database connection after running the tests
+  afterAll(async () => {
+    await destroyConnection()
   })
 
   it('gets a token, then creates a blog', async () => {
