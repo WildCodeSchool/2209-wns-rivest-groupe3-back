@@ -109,17 +109,13 @@ describe('Blog resolver', () => {
       query: GET_ALL_BLOGS,
     })
     expect(res.data.getAllBlogs.length).toBeGreaterThan(0)
-    expect(res.data).toMatchObject({
-      getAllBlogs: [
-        {
-          name: 'My Test Blog',
-          description: 'A test description for a blog',
-          template: 0,
-          user: {
-            nickname: 'test',
-          },
-        },
-      ],
+    expect(res.data.getAllBlogs[0]).toMatchObject({
+      name: 'My Test Blog',
+      description: 'A test description for a blog',
+      template: 0,
+      user: {
+        nickname: 'test',
+      },
     })
     expect(res.data?.getAllBlogs[0].id).toMatch(uuidRegex)
     expect(res.data?.getAllBlogs[0].user.id).toMatch(uuidRegex)
