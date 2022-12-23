@@ -30,4 +30,8 @@ const prepareBlogTable = async (): Promise<void> => {
   }
 }
 
-export { prepareUserTable, prepareBlogTable }
+const destroyConnection = async (): Promise<void> => {
+  await testDataSource.destroy()
+}
+
+export { prepareUserTable, prepareBlogTable, destroyConnection }
