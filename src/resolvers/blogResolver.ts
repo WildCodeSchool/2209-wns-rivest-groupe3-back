@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
@@ -16,6 +16,9 @@ export class BlogResolver {
           articles: {
             articleContent: true,
           },
+          user: {
+            blogs: true,
+          },
         },
       })
       return blog
@@ -32,6 +35,9 @@ export class BlogResolver {
           articles: {
             articleContent: true,
           },
+          user: {
+            blogs: true,
+          },
         },
       })
       return blogs
@@ -40,6 +46,7 @@ export class BlogResolver {
     }
   }
 
+  @Authorized()
   @Mutation(() => Blog)
   async createBlog(
     @Ctx() context: { userId: string; email: string },
