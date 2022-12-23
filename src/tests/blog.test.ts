@@ -32,6 +32,10 @@ const GET_ALL_BLOGS = gql`
       description
       template
       createdAt
+      user {
+        id
+        nickname
+      }
     }
   }
 `
@@ -43,11 +47,11 @@ const timeStampStringRegex =
   /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z/
 
 describe('Blog resolver', () => {
-  it.skip('gets a token, then creates a blog', async () => {
+  it('gets a token, then creates a blog', async () => {
     const tokenRes = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'test',
       },
     })
@@ -101,6 +105,9 @@ describe('Blog resolver', () => {
           name: 'My Test Blog',
           description: 'A test description for a blog',
           template: 0,
+          user: {
+            nickname: 'test',
+          },
         },
       ],
     })
