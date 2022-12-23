@@ -31,6 +31,15 @@ const GET_ALL_USERS = gql`
     }
   }
 `
+const GET_ONE_USER = gql`
+  query getOneUser($nickname: String!) {
+    getOneUser(nickname: $nickname) {
+      avatar
+      nickname
+      description
+    }
+  }
+`
 
 const uuidRegex =
   /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/
@@ -150,5 +159,33 @@ describe('User resolver', () => {
       },
     })
     expect(res.data?.getAllUsers.length).toBeGreaterThanOrEqual(0)
+  })
+
+  it('should get one user', async () => {
+    const res = await client.query({
+      query: GET_ONE_USER,
+      variables: {
+        nickname: 'test',
+      },
+    })
+    expect(res.data).toMatchObject({
+      getOneUser: {
+        avatar: null,
+        nickname: 'test',
+        description: 'test description',
+      },
+    })
+  })
+
+  it('getOneUser should fail if user doesnt exist', async () => {
+    const res = await client.query({
+      query: GET_ONE_USER,
+      variables: {
+        nickname: 'unknow',
+      },
+    })
+    const errorMessage = res.errors?.[0]?.message
+    expect(res.errors).toHaveLength(1)
+    expect(errorMessage).toBe("Cet utilisateur n'existe pas !")
   })
 })

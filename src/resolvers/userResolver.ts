@@ -39,13 +39,23 @@ export class UserResolver {
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('nickname') nickname: string,
     @Arg('description', { nullable: true }) description: string
-  ): Promise<User> {
-    return await dataSource.manager.findOneOrFail(User, {
-      where: { nickname },
-      relations: {
-        blogs: true,
-      },
-    })
+  ): Promise<User | null> {
+    try {
+      const user = await dataSource.manager.findOne(User, {
+        where: { nickname },
+        relations: {
+          blogs: true,
+        },
+      })
+      console.log(user)
+      if (user === null) {
+        throw new Error("Cet utilisateur n'existe pas !")
+      } else {
+        return user
+      }
+    } catch (err: any) {
+      throw new Error(err.message)
+    }
   }
 
   @Mutation(() => User)
