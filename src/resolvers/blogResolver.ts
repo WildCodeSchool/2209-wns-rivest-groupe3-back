@@ -32,6 +32,9 @@ export class BlogResolver {
           articles: {
             articleContent: true,
           },
+          user: {
+            blogs: true,
+          },
         },
       })
       return blogs
