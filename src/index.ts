@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server'
 import { buildSchema } from 'type-graphql'
-import datasource from './utils'
+import dataSource from './utils'
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
 import { UserResolver } from './resolvers/userResolver'
@@ -16,7 +16,7 @@ dotenv.config()
 const port = process.env.PORT ?? 5000
 
 const start = async (): Promise<void> => {
-  await datasource.initialize()
+  await dataSource.initialize()
   const schema = await buildSchema({
     resolvers: [
       UserResolver,

@@ -34,6 +34,7 @@ export class Blog {
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
 
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.blogs, {
     onDelete: 'CASCADE',
   })
