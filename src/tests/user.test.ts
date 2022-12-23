@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client/core'
 import client from './clientUtil'
+import { prepareUserTable, destroyConnection } from './prepareDatabase'
 
 const CREATE_USER = gql`
   mutation createUser($email: String!, $password: String!, $nickname: String!) {
@@ -38,18 +39,27 @@ const uuidRegex =
 const jwtRegex = /[a-zA-Z0-9-_=]+\.[a-zA-Z0-9-_=]+\.?[a-zA-Z0-9-_.+/=]*/
 
 describe('User resolver', () => {
-  it.skip('creates a user', async () => {
+  // Setup the database before running the tests
+  beforeAll(async () => {
+    await prepareUserTable()
+  })
+  // Close the database connection after running the tests
+  afterAll(async () => {
+    await destroyConnection()
+  })
+
+  it('creates a user', async () => {
     const res = await client.mutate({
       mutation: CREATE_USER,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'test',
         nickname: 'test',
       },
     })
     expect(res.data).toMatchObject({
       createUser: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         nickname: 'test',
       },
     })
@@ -60,7 +70,7 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: CREATE_USER,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'test',
         nickname: 'test',
       },
@@ -88,7 +98,7 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'test',
       },
     })
@@ -99,7 +109,7 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'wrong',
       },
     })
@@ -136,7 +146,7 @@ describe('User resolver', () => {
     const tokenRes = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test@test.com',
+        email: 'test-user@test.com',
         password: 'test',
       },
     })
@@ -149,6 +159,6 @@ describe('User resolver', () => {
         },
       },
     })
-    expect(res.data?.getAllUsers.length).toBeGreaterThanOrEqual(0)
+    expect(res.data?.getAllUsers.length).toBeGreaterThanOrEqual(1)
   })
 })
