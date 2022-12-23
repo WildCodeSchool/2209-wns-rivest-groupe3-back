@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client/core'
 import client from './clientUtil'
+import { prepareBlogTable } from './prepareDatabase'
 
 const GET_TOKEN = gql`
   mutation getToken($email: String!, $password: String!) {
@@ -47,6 +48,11 @@ const timeStampStringRegex =
   /[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z/
 
 describe('Blog resolver', () => {
+  // Setup the database before running the tests
+  beforeAll(async () => {
+    await prepareBlogTable()
+  })
+
   it('gets a token, then creates a blog', async () => {
     const tokenRes = await client.mutate({
       mutation: GET_TOKEN,
@@ -112,6 +118,7 @@ describe('Blog resolver', () => {
       ],
     })
     expect(res.data?.getAllBlogs[0].id).toMatch(uuidRegex)
+    expect(res.data?.getAllBlogs[0].user.id).toMatch(uuidRegex)
     expect(res.data?.getAllBlogs[0].createdAt).toMatch(timeStampStringRegex)
   })
 })
