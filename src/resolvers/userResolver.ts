@@ -3,6 +3,7 @@ import { UserInputError, AuthenticationError } from 'apollo-server'
 import {
   Arg,
   Authorized,
+  Ctx,
   Field,
   Mutation,
   ObjectType,
@@ -107,5 +108,38 @@ export class UserResolver {
     } catch (err: any) {
       throw new AuthenticationError(err.message)
     }
+  }
+
+  @Authorized()
+  @Mutation(() => User)
+  async updateUser(
+    @Ctx() context: { userId: string; email: string },
+    @Arg('email', { nullable: true }) email: string,
+    @Arg('password', { nullable: true }) password: string,
+    @Arg('nickname', { nullable: true }) nickname: string,
+    @Arg('city', { nullable: true }) city: string,
+    @Arg('description', { nullable: true }) description: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('firstName', { nullable: true }) firstName: string,
+    @Arg('lastName', { nullable: true }) lastName: string
+  ): Promise<User> {
+    const user = await dataSource.manager.findOneByOrFail(User, {
+      email,
+    })
+    if (user.id !== context.userId) {
+      throw new Error("You can't update other user's profile")
+    }
+    user.email = email !== null ? email : user.email
+    user.password =
+      password !== null ? await argon2.hash(password) : user.password
+    user.nickname = nickname !== null ? nickname : user.nickname
+    user.city = city !== null ? city : user.city
+    user.firstName = firstName !== null ? firstName : user.firstName
+    user.lastName = lastName !== null ? lastName : user.lastName
+    user.description = description !== null ? description : user.description
+    user.avatar = avatar !== null ? avatar : user.avatar
+
+    const userFromDb = await dataSource.manager.save(User, user)
+    return userFromDb
   }
 }
