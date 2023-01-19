@@ -4,12 +4,13 @@ services:
     image: postgres
     restart: always
     ports:
-      - 5434:5432
+      - 5432:5432
     environment:
       POSTGRES_DB: postgres
       PGUSER: postgres
       POSTGRES_PASSWORD: example
       PGDATA: /var/lib/postgresql/data/pgdata
+
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready']
       interval: 5s
@@ -20,13 +21,13 @@ services:
   backend-test:
     container_name: backend-test
     build:
-      context: ../back
+      context: .
       dockerfile: Dockerfile.dev
     env_file:
-      - ../back/.env
+      - ./.env.test
     ports:
-      - 5555:5000
-    command: [sh, -cx, 'npm run start']
+      - 5555:5555
+    command: [sh, -cx, 'npm run dev']
     volumes:
       - ./src/:/app/src/
     depends_on:
@@ -42,7 +43,7 @@ services:
           '--header',
           "'content-type: application/json'",
           '--url',
-          'http://localhost:5000/',
+          'http://localhost:5555/',
           '--data',
           '{"query":"query { __typename }"}',
         ]
