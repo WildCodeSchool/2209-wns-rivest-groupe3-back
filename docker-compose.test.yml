@@ -1,0 +1,52 @@
+services:
+  db-test:
+    container_name: test-postgresDB
+    image: postgres
+    restart: always
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_DB: postgres
+      PGUSER: postgres
+      POSTGRES_PASSWORD: example
+      PGDATA: /var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready']
+      interval: 5s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  backend-test:
+    container_name: backend-test
+    build:
+      context: ../back
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ../back/.env
+    ports:
+      - 5555:5000
+    command: [sh, -cx, 'npm run start']
+    volumes:
+      - ./src/:/app/src/
+    depends_on:
+      'db-test':
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'curl',
+          '--request',
+          'POST',
+          '--header',
+          "'content-type: application/json'",
+          '--url',
+          'http://localhost:5000/',
+          '--data',
+          '{"query":"query { __typename }"}',
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
