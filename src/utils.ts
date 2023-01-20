@@ -1,3 +1,4 @@
+import * as dotenv from 'dotenv'
 import { DataSource } from 'typeorm'
 import { User } from './entities/User'
 import { Blog } from './entities/Blog'
@@ -7,9 +8,13 @@ import { Comment } from './entities/Comment'
 import { Category } from './entities/Category'
 import { Tag } from './entities/Tag'
 
+dotenv.config()
+
+const dbHost = process.env.NODE_ENV === 'test' ? 'db-test' : 'db'
+
 const dataSource = new DataSource({
   type: 'postgres',
-  host: 'db',
+  host: dbHost,
   port: 5432,
   username: 'postgres',
   password: 'example',
