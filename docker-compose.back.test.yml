@@ -4,13 +4,13 @@ services:
     image: postgres
     restart: always
     ports:
-      - 5432:5432
+      - 5433:5433
     environment:
       POSTGRES_DB: postgres
+      PGPORT: 5433
       PGUSER: postgres
       POSTGRES_PASSWORD: example
       PGDATA: /var/lib/postgresql/data/pgdata
-
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready']
       interval: 5s

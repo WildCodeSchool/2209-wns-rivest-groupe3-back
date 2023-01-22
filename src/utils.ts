@@ -11,11 +11,12 @@ import { Tag } from './entities/Tag'
 dotenv.config()
 
 const dbHost = process.env.NODE_ENV === 'test' ? 'db-test' : 'db'
+const dbPort = process.env.NODE_ENV === 'test' ? 5433 : 5432
 
 const dataSource = new DataSource({
   type: 'postgres',
   host: dbHost,
-  port: 5432,
+  port: dbPort,
   username: 'postgres',
   password: 'example',
   database: 'postgres',
