@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles",
-    "test-watch": "jest --watchAll --detectOpenHandles",
+    "db:test:up": "docker compose -f docker-compose.back.test.yml up --build -d --wait",
+    "db:test:down": "docker compose -f docker-compose.back.test.yml down",
+    "test": "npm run db:test:up && jest",
+    "posttest": "npm run db:test:down",
+    "test-watch": "npm run db:test:up && jest --watchAll",
+    "posttest-watch": "npm run db:test:down",
     "dev": "ts-node-dev src/index.ts --watch src",
     "build": "tsc",
     "start": "node dist/index.js"
@@ -18,7 +22,7 @@
     "class-validator": "^0.13.2",
     "dotenv": "^16.0.3",
     "graphql": "^15.8.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^1.1.1",

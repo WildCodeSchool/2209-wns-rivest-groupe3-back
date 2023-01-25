@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client/core'
 import client from './clientUtil'
-import { prepareUserTable } from './prepareDatabase'
+import clearAllEntities from './setupDb'
 
 const CREATE_USER = gql`
   mutation createUser($email: String!, $password: String!, $nickname: String!) {
@@ -39,11 +39,9 @@ const uuidRegex =
 const jwtRegex = /[a-zA-Z0-9-_=]+\.[a-zA-Z0-9-_=]+\.?[a-zA-Z0-9-_.+/=]*/
 
 describe('User resolver', () => {
-  // Setup the database before running the tests
   beforeAll(async () => {
-    await prepareUserTable()
+    await clearAllEntities()
   })
-
   it('creates a user', async () => {
     const res = await client.mutate({
       mutation: CREATE_USER,
