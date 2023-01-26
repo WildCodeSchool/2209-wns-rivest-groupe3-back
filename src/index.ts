@@ -17,6 +17,7 @@ const port = process.env.PORT ?? 5000
 
 const start = async (): Promise<void> => {
   await dataSource.initialize()
+  await dataSource.runMigrations()
   const schema = await buildSchema({
     resolvers: [
       UserResolver,
