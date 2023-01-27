@@ -113,31 +113,44 @@ export class UserResolver {
   @Authorized()
   @Mutation(() => User)
   async updateUser(
-    @Ctx() context: { userId: string; email: string },
-    @Arg('email', { nullable: true }) email: string,
-    @Arg('password', { nullable: true }) password: string,
-    @Arg('nickname', { nullable: true }) nickname: string,
-    @Arg('city', { nullable: true }) city: string,
-    @Arg('description', { nullable: true }) description: string,
-    @Arg('avatar', { nullable: true }) avatar: string,
-    @Arg('firstName', { nullable: true }) firstName: string,
-    @Arg('lastName', { nullable: true }) lastName: string
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('email', { nullable: true }) email?: string,
+    @Arg('password', { nullable: true }) password?: string,
+    @Arg('nickname', { nullable: true }) nickname?: string,
+    @Arg('city', { nullable: true }) city?: string,
+    @Arg('description', { nullable: true }) description?: string,
+    @Arg('avatar', { nullable: true }) avatar?: string,
+    @Arg('firstName', { nullable: true }) firstName?: string,
+    @Arg('lastName', { nullable: true }) lastName?: string
   ): Promise<User> {
+    const {
+      userFromToken: { userId },
+    } = context
     const user = await dataSource.manager.findOneByOrFail(User, {
-      email,
+      id: userId,
     })
-    if (user.id !== context.userId) {
-      throw new Error("You can't update other user's profile")
+    if (user === null) {
+      throw new Error('user not found')
     }
-    user.email = email !== null ? email : user.email
+    if (nickname !== undefined) {
+      const userNicknameExists = await dataSource.manager.findOneBy(User, {
+        nickname,
+      })
+      if (userNicknameExists != null) {
+        throw new UserInputError('Ce pseudo est déjà pris')
+      }
+    }
+    user.nickname = nickname !== undefined ? nickname : user.nickname
+
+    user.email = email !== undefined ? email : user.email
+    user.city = city !== undefined ? city : user.city
+    user.firstName = firstName !== undefined ? firstName : user.firstName
+    user.lastName = lastName !== undefined ? lastName : user.lastName
+    user.description =
+      description !== undefined ? description : user.description
+    user.avatar = avatar !== undefined ? avatar : user.avatar
     user.password =
-      password !== null ? await argon2.hash(password) : user.password
-    user.nickname = nickname !== null ? nickname : user.nickname
-    user.city = city !== null ? city : user.city
-    user.firstName = firstName !== null ? firstName : user.firstName
-    user.lastName = lastName !== null ? lastName : user.lastName
-    user.description = description !== null ? description : user.description
-    user.avatar = avatar !== null ? avatar : user.avatar
+      password !== undefined ? await argon2.hash(password) : user.password
 
     const userFromDb = await dataSource.manager.save(User, user)
     return userFromDb
