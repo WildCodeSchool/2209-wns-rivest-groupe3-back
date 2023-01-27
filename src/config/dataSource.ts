@@ -9,8 +9,8 @@ const dataSource = new DataSource({
   password: 'example',
   database: 'postgres',
   synchronize: false,
-  entities: [path.join(__dirname, '../src/entities/*.ts')],
-  migrations: [path.join(__dirname, '../src/migrations/*.ts')],
+  entities: [path.join(__dirname, '../entities/*.ts')],
+  migrations: [path.join(__dirname, '../migrations/*.ts')],
   logging: ['error'],
 })
 
