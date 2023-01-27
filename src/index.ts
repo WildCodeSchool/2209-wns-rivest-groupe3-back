@@ -4,12 +4,7 @@ import { buildSchema } from 'type-graphql'
 import dataSource from './utils'
 import jwt from 'jsonwebtoken'
 import * as dotenv from 'dotenv'
-import { UserResolver } from './resolvers/userResolver'
-import { BlogResolver } from './resolvers/blogResolver'
-import { ArticleResolver } from './resolvers/articleResolver'
-import { CommentResolver } from './resolvers/commentResolver'
-import { CategoryResolver } from './resolvers/categoryResolver'
-import { TagResolver } from './resolvers/tagResolver'
+import * as path from 'path'
 
 dotenv.config()
 
@@ -19,14 +14,7 @@ const start = async (): Promise<void> => {
   await dataSource.initialize()
   await dataSource.runMigrations()
   const schema = await buildSchema({
-    resolvers: [
-      UserResolver,
-      BlogResolver,
-      ArticleResolver,
-      CommentResolver,
-      CategoryResolver,
-      TagResolver,
-    ],
+    resolvers: [path.join(__dirname, './resolvers/*.ts')],
     authChecker: ({ context }) => {
       const { userFromToken: { email } = { email: null } } = context
       if (email === null) return false
