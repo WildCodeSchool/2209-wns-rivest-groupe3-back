@@ -10,8 +10,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typeorm": "typeorm-ts-node-commonjs -d config/dataSource.ts",
-    "typeorm:migrate": "npm run typeorm migration:generate",
-    "typeorm:run": "npm run typeorm migration:run"
+    "db:migration:generate": "npm run typeorm migration:generate",
+    "db:migration:run": "npm run typeorm migration:run"
   },
   "author": "",
   "license": "ISC",
