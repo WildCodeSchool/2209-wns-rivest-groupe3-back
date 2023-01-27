@@ -1,4 +1,4 @@
-import { Arg, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
@@ -16,6 +16,9 @@ export class BlogResolver {
           articles: {
             articleContent: true,
           },
+          user: {
+            blogs: true,
+          },
         },
       })
       return blog
@@ -32,6 +35,9 @@ export class BlogResolver {
           articles: {
             articleContent: true,
           },
+          user: {
+            blogs: true,
+          },
         },
       })
       return blogs
@@ -40,15 +46,18 @@ export class BlogResolver {
     }
   }
 
+  @Authorized()
   @Mutation(() => Blog)
   async createBlog(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('name') name: string,
     @Arg('description') description: string,
-    @Arg('userId') userId: string,
-    @Arg('template', { nullable: true }) template?: string
+    @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
-      // TODO : Get user from token
+      const {
+        userFromToken: { userId },
+      } = context
       const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })
