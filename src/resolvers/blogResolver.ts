@@ -49,13 +49,15 @@ export class BlogResolver {
   @Authorized()
   @Mutation(() => Blog)
   async createBlog(
-    @Ctx() context: { userId: string; email: string },
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('name') name: string,
     @Arg('description') description: string,
     @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
-      const { userId } = context
+      const {
+        userFromToken: { userId },
+      } = context
       const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })

@@ -1,12 +1,6 @@
 import * as dotenv from 'dotenv'
+import * as path from 'path'
 import { DataSource } from 'typeorm'
-import { User } from './entities/User'
-import { Blog } from './entities/Blog'
-import { Article } from './entities/Article'
-import { Content } from './entities/Content'
-import { Comment } from './entities/Comment'
-import { Category } from './entities/Category'
-import { Tag } from './entities/Tag'
 
 dotenv.config()
 
@@ -20,8 +14,9 @@ const dataSource = new DataSource({
   username: 'postgres',
   password: 'example',
   database: 'postgres',
-  synchronize: true,
-  entities: [User, Blog, Article, Content, Comment, Category, Tag],
+  synchronize: false,
+  entities: [path.join(__dirname, './entities/*.ts')],
+  migrations: [path.join(__dirname, '/migrations/*.ts')],
   logging: ['error'],
 })
 
