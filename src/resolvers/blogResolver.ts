@@ -11,6 +11,12 @@ export class BlogResolver {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
           id: blogId,
+          articles: {
+            show: true,
+            articleContent: {
+              current: true,
+            },
+          },
         },
         relations: {
           articles: {
@@ -31,6 +37,14 @@ export class BlogResolver {
   async getAllBlogs(): Promise<Blog[]> {
     try {
       const blogs = await dataSource.manager.find(Blog, {
+        where: {
+          articles: {
+            show: true,
+            articleContent: {
+              current: true,
+            },
+          },
+        },
         relations: {
           articles: {
             articleContent: true,
