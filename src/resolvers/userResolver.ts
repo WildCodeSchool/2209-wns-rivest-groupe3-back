@@ -3,6 +3,7 @@ import { UserInputError, AuthenticationError } from 'apollo-server'
 import {
   Arg,
   Authorized,
+  Ctx,
   Field,
   Mutation,
   ObjectType,
@@ -107,5 +108,51 @@ export class UserResolver {
     } catch (err: any) {
       throw new AuthenticationError(err.message)
     }
+  }
+
+  @Authorized()
+  @Mutation(() => User)
+  async updateUser(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('email', { nullable: true }) email?: string,
+    @Arg('password', { nullable: true }) password?: string,
+    @Arg('nickname', { nullable: true }) nickname?: string,
+    @Arg('city', { nullable: true }) city?: string,
+    @Arg('description', { nullable: true }) description?: string,
+    @Arg('avatar', { nullable: true }) avatar?: string,
+    @Arg('firstName', { nullable: true }) firstName?: string,
+    @Arg('lastName', { nullable: true }) lastName?: string
+  ): Promise<User> {
+    const {
+      userFromToken: { userId },
+    } = context
+    const user = await dataSource.manager.findOneByOrFail(User, {
+      id: userId,
+    })
+    if (user === null) {
+      throw new Error('user not found')
+    }
+    if (nickname !== undefined) {
+      const userNicknameExists = await dataSource.manager.findOneBy(User, {
+        nickname,
+      })
+      if (userNicknameExists != null) {
+        throw new UserInputError('Ce pseudo est déjà pris')
+      }
+    }
+    user.nickname = nickname !== undefined ? nickname : user.nickname
+
+    user.email = email !== undefined ? email : user.email
+    user.city = city !== undefined ? city : user.city
+    user.firstName = firstName !== undefined ? firstName : user.firstName
+    user.lastName = lastName !== undefined ? lastName : user.lastName
+    user.description =
+      description !== undefined ? description : user.description
+    user.avatar = avatar !== undefined ? avatar : user.avatar
+    user.password =
+      password !== undefined ? await argon2.hash(password) : user.password
+
+    const userFromDb = await dataSource.manager.save(User, user)
+    return userFromDb
   }
 }
