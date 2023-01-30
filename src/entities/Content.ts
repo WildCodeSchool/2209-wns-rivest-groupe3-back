@@ -56,6 +56,10 @@ export class Content {
   @Column({ type: 'int' })
   version: number
 
+  @Field()
+  @Column({ type: 'boolean', default: true })
+  current: boolean
+
   @ManyToOne(() => Article, (article) => article.articleContent, {
     onDelete: 'CASCADE',
   })
