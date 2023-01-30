@@ -12,7 +12,6 @@ const dataSource = new DataSource({
   entities: [path.join(__dirname, './entities/*.ts')],
   migrations: [path.join(__dirname, '/migrations/*.ts')],
   logging: ['error'],
-  migrationsRun: true,
 })
 
 export default dataSource
