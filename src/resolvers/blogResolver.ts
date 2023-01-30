@@ -52,6 +52,7 @@ export class BlogResolver {
     @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('name') name: string,
     @Arg('description') description: string,
+    @Arg('slug') slug: string,
     @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
@@ -63,6 +64,7 @@ export class BlogResolver {
       })
       const newBlog = new Blog()
       newBlog.name = name
+      newBlog.slug = slug
       newBlog.description = description
       newBlog.user = user
       newBlog.template = template === null ? template : 0

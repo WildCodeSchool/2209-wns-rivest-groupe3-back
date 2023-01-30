@@ -31,6 +31,10 @@ export class Blog {
   template: number
 
   @Field()
+  @Column({ type: 'varchar', unique: true })
+  slug: string
+
+  @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
 
