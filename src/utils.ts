@@ -1,10 +1,16 @@
+import * as dotenv from 'dotenv'
 import * as path from 'path'
 import { DataSource } from 'typeorm'
 
+dotenv.config()
+
+const dbHost = process.env.NODE_ENV === 'test' ? 'db-test' : 'db'
+const dbPort = process.env.NODE_ENV === 'test' ? 5433 : 5432
+
 const dataSource = new DataSource({
   type: 'postgres',
-  host: 'db',
-  port: 5432,
+  host: dbHost,
+  port: dbPort,
   username: 'postgres',
   password: 'example',
   database: 'postgres',

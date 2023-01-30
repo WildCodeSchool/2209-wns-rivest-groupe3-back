@@ -10,7 +10,7 @@ import { Tag } from '../entities/Tag'
 const testDataSource = new DataSource({
   type: 'postgres',
   host: 'localhost',
-  port: 5432,
+  port: 5433,
   username: 'postgres',
   password: 'example',
   database: 'postgres',
