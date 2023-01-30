@@ -1,0 +1,10 @@
+{
+  "email": "mock@mock.com",
+  "password": "P@sswœrd123",
+  "nickname": "mocker",
+  "city": "Mockville",
+  "firstName": "Mister",
+  "lastName": "Mock",
+  "description": "A user for mocking and manual resolver testing",
+  "avatar": "https://img.freepik.com/vecteurs-libre/homme-mafieux-mysterieux-fumant-cigarette_52683-34828.jpg?w=1380&t=st=1674848201~exp=1674848801~hmac=11eca556d742ceedc183dd83a44cde1585018136be0e7662e89a65ad86ebb9b1"
+}
