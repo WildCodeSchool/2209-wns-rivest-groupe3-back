@@ -2,6 +2,7 @@ import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
+import slugify from 'slugify'
 
 @Resolver(Blog)
 export class BlogResolver {
@@ -52,7 +53,6 @@ export class BlogResolver {
     @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('name') name: string,
     @Arg('description') description: string,
-    @Arg('slug') slug: string,
     @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
@@ -64,7 +64,30 @@ export class BlogResolver {
       })
       const newBlog = new Blog()
       newBlog.name = name
-      newBlog.slug = slug
+      const baseSlug = slugify(name, {
+        replacement: '-',
+        remove: undefined,
+        lower: true,
+        strict: false,
+        locale: 'vi',
+        trim: true,
+      })
+      let newSlug = baseSlug
+
+      let i = 0
+      let blogExists = true
+      while (blogExists) {
+        const dataSlug = await dataSource.manager.findOne(Blog, {
+          where: { slug: newSlug },
+        })
+        if (dataSlug != null) {
+          i++
+          newSlug = `${baseSlug}_${i}`
+        } else {
+          blogExists = false
+        }
+      }
+      newBlog.slug = newSlug
       newBlog.description = description
       newBlog.user = user
       newBlog.template = template === null ? template : 0
