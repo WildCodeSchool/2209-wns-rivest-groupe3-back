@@ -7,11 +7,11 @@ import slugify from 'slugify'
 @Resolver(Blog)
 export class BlogResolver {
   @Query(() => Blog)
-  async getBlog(@Arg('blogId') blogId: string): Promise<Blog> {
+  async getBlog(@Arg('slug') slug: string): Promise<Blog> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
-          id: blogId,
+          slug,
         },
         relations: {
           articles: {
