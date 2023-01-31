@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2'
-import { UserInputError, AuthenticationError } from 'apollo-server'
+import { UserInputError, ApolloError, AuthenticationError } from 'apollo-server'
 import {
   Arg,
   Authorized,
@@ -154,5 +154,26 @@ export class UserResolver {
 
     const userFromDb = await dataSource.manager.save(User, user)
     return userFromDb
+  }
+
+  @Authorized()
+  @Mutation(() => String)
+  async deleteUser(
+    @Ctx() context: { userFromToken: { userId: string } }
+  ): Promise<String> {
+    try {
+      const {
+        userFromToken: { userId },
+      } = context
+      await dataSource.manager.findOneByOrFail(User, {
+        id: userId,
+      })
+      const deletedMessage = `Compte supprimé avec succès`
+      await dataSource.manager.delete(User, userId)
+      return deletedMessage
+    } catch (err) {
+      console.error(err)
+      throw new ApolloError('Impossible de supprimer le comtpe')
+    }
   }
 }
