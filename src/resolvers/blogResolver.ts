@@ -54,8 +54,9 @@ export class BlogResolver {
       const {
         userFromToken: { userId },
       } = context
-      const user = await dataSource.manager.findOneByOrFail(User, {
-        id: userId,
+      const user = await dataSource.manager.findOneOrFail(User, {
+        where: { id: userId },
+        relations: { blogs: true },
       })
       const newBlog = new Blog()
       newBlog.name = name
