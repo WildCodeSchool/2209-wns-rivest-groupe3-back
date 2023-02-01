@@ -35,7 +35,7 @@ class ContentType {
   time: number
 
   @Field()
-  version: string
+  version: number
 
   @Field((type) => [ContentBlockType])
   blocks: ContentBlockType[]
@@ -55,6 +55,10 @@ export class Content {
   @Field()
   @Column({ type: 'int' })
   version: number
+
+  @Field()
+  @Column({ type: 'boolean', default: true })
+  current: boolean
 
   @ManyToOne(() => Article, (article) => article.articleContent, {
     onDelete: 'CASCADE',
