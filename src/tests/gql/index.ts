@@ -38,6 +38,7 @@ export const CREATE_BLOG = gql`
     createBlog(description: $description, name: $name, template: $template) {
       id
       name
+      slug
       description
       template
       createdAt
@@ -49,6 +50,7 @@ export const GET_ALL_BLOGS = gql`
     getAllBlogs {
       id
       name
+      slug
       description
       template
       createdAt
@@ -64,12 +66,14 @@ export const GET_ALL_BLOGS = gql`
 export const CREATE_ARTICLE = gql`
   mutation CreateArticle(
     $blogId: String!
+    $title: String!
     $show: Boolean!
     $version: Float!
     $articleContent: IContentType!
   ) {
     createArticle(
       blogId: $blogId
+      title: $title
       show: $show
       version: $version
       articleContent: $articleContent
@@ -77,6 +81,8 @@ export const CREATE_ARTICLE = gql`
       show
       version
       id
+      title
+      slug
       postedAt
       createdAt
       articleContent {
@@ -102,11 +108,23 @@ export const CREATE_ARTICLE = gql`
 `
 
 export const GET_ONE_ARTICLE = gql`
-  query GetOneArticle($articleId: String!, $version: Float) {
-    getOneArticle(articleId: $articleId, version: $version) {
+  query GetOneArticle(
+    $articleId: String
+    $version: Float
+    $slug: String!
+    $blogSlug: String!
+  ) {
+    getOneArticle(
+      articleId: $articleId
+      version: $version
+      slug: $slug
+      blogSlug: $blogSlug
+    ) {
       id
       postedAt
       show
+      slug
+      title
       articleContent {
         version
         id
@@ -138,6 +156,7 @@ export const UPDATE_ARTICLE = gql`
     $version: Float!
     $articleContent: IContentType!
     $articleId: String!
+    $title: String!
   ) {
     updateArticle(
       blogId: $blogId
@@ -145,10 +164,12 @@ export const UPDATE_ARTICLE = gql`
       version: $version
       articleContent: $articleContent
       articleId: $articleId
+      title: $title
     ) {
       id
       postedAt
       show
+      slug
       version
       articleContent {
         id
