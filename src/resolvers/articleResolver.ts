@@ -14,6 +14,7 @@ import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
+import slugify from 'slugify'
 
 @InputType()
 class IContentBlockData {
@@ -41,7 +42,7 @@ class IContentBlock {
   data: IContentBlockData
 }
 @InputType()
-class IContentType {
+export class IContentType {
   @Field()
   time: number
 
@@ -55,6 +56,9 @@ class IContentType {
 class NewArticleArgs {
   @Field((type) => String)
   blogId: string
+
+  @Field()
+  title: string
 
   @Field()
   show: boolean
@@ -94,7 +98,7 @@ export class ArticleResolver {
   async createArticle(
     @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Args()
-    { blogId, show, postedAt, country, articleContent }: NewArticleArgs
+    { blogId, title, show, postedAt, country, articleContent }: NewArticleArgs
   ): Promise<Article> {
     try {
       const {
@@ -106,12 +110,38 @@ export class ArticleResolver {
           user: true,
         },
       })
-
       if (blog.user.id !== userId) {
         throw new Error('You are not authorized to update this blog..')
       }
+      const articleTitleAlreadyExists = await dataSource.manager.find(Article, {
+        where: {
+          slug: slugify(title, {
+            replacement: '-',
+            remove: undefined,
+            lower: true,
+            strict: false,
+            locale: 'vi',
+            trim: true,
+          }),
+          blog: { id: blog.id },
+        },
+      })
+      if (articleTitleAlreadyExists.length > 0)
+        throw new Error(
+          'An article with this title already exists in this blog.\n Consider changing the title or updating existing one'
+        )
+
       const newArticle = new Article()
       const version = 1
+      newArticle.title = title
+      newArticle.slug = slugify(title, {
+        replacement: '-',
+        remove: undefined,
+        lower: true,
+        strict: false,
+        locale: 'vi',
+        trim: true,
+      })
       newArticle.show = show
       newArticle.country = country
       newArticle.version = version
@@ -136,15 +166,25 @@ export class ArticleResolver {
 
   @Query(() => Article)
   async getOneArticle(
-    @Arg('articleId') articleId: string,
+    @Arg('slug') slug: string,
+    @Arg('blogSlug') blogSlug: string,
+    @Arg('articleId', { nullable: true }) articleId: string,
     @Arg('version', { nullable: true }) version?: number,
     @Arg('current', { nullable: true }) current?: boolean
   ): Promise<Article> {
     try {
+      const blog = await dataSource.manager.findOneOrFail(Blog, {
+        where: { slug: blogSlug },
+      })
       if (version !== undefined) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
-          where: { articleContent: { version }, id: articleId, show: true },
+          where: {
+            articleContent: { version },
+            slug,
+            blog: { id: blog.id },
+            show: true,
+          },
         })
       }
       if (current ?? false) {
@@ -152,14 +192,27 @@ export class ArticleResolver {
           relations: { articleContent: true },
           where: {
             articleContent: { current: true },
-            id: articleId,
+            slug,
+            blog: { id: blog.id },
             show: true,
           },
         })
       }
+      if (articleId !== undefined) {
+        return await dataSource.manager.findOneOrFail(Article, {
+          relations: { articleContent: true },
+          where: { id: articleId, show: true },
+        })
+      }
+
       return await dataSource.manager.findOneOrFail(Article, {
         relations: { articleContent: true },
-        where: { id: articleId, show: true },
+        where: {
+          slug,
+          blog: { id: blog.id },
+          show: true,
+          articleContent: { current: true },
+        },
       })
     } catch (error) {
       throw new Error('Article not found')
@@ -174,6 +227,7 @@ export class ArticleResolver {
     {
       articleId,
       blogId,
+      title,
       show,
       version,
       country,
@@ -220,6 +274,7 @@ export class ArticleResolver {
         const newContent = new Content()
         newContent.version = version
         newContent.content = articleContent
+        newContent.current = true
 
         const savedContent = await dataSource.manager.save(newContent)
 
@@ -228,21 +283,50 @@ export class ArticleResolver {
       }
 
       article.version = version !== undefined ? version : article.version
+      if (article.title !== title) {
+        const articleTitleAlreadyExists = await dataSource.manager.find(
+          Article,
+          {
+            where: {
+              slug: slugify(title, {
+                replacement: '-',
+                remove: undefined,
+                lower: true,
+                strict: false,
+                locale: 'vi',
+                trim: true,
+              }),
+              blog: { id: blog.id },
+            },
+          }
+        )
+        if (articleTitleAlreadyExists.length > 0)
+          throw new Error(
+            'An article with this title already exists in this blog.\n Consider changing the title or updating existing one'
+          )
+        article.title = title
+        article.slug = slugify(title, {
+          replacement: '-',
+          remove: undefined,
+          lower: true,
+          strict: false,
+          locale: 'vi',
+          trim: true,
+        })
+      }
 
       // Save updated article to db
       await dataSource.manager.save(article)
 
       // Query db again and filter out content to current === true only
-      const updatedArticleFromDb = await dataSource.manager.findOneOrFail(
-        Article,
-        {
-          where: { id: articleId, articleContent: { current: true } },
-          relations: {
-            articleContent: true,
-          },
-        }
-      )
-      return updatedArticleFromDb
+      const updated = await dataSource.manager.findOneOrFail(Article, {
+        relations: { articleContent: true },
+        where: {
+          articleContent: { current: true },
+          id: articleId,
+        },
+      })
+      return updated
     } catch (error: any) {
       console.error(error)
       throw new Error(error)
