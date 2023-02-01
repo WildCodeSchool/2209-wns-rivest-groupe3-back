@@ -35,7 +35,7 @@ class ContentType {
   time: number
 
   @Field()
-  version: string
+  version: number
 
   @Field((type) => [ContentBlockType])
   blocks: ContentBlockType[]

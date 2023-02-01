@@ -46,7 +46,7 @@ class IContentType {
   time: number
 
   @Field()
-  version: string
+  version: number
 
   @Field((type) => [IContentBlock])
   blocks: IContentBlock[]
