@@ -1,37 +1,6 @@
-import { gql } from '@apollo/client/core'
 import client from './clientUtil'
 import clearAllEntities from './setupDb'
-
-const CREATE_USER = gql`
-  mutation createUser($email: String!, $password: String!, $nickname: String!) {
-    createUser(email: $email, password: $password, nickname: $nickname) {
-      id
-      email
-      nickname
-    }
-  }
-`
-const GET_TOKEN = gql`
-  mutation getToken($email: String!, $password: String!) {
-    getToken(email: $email, password: $password) {
-      token
-      user {
-        id
-        email
-        nickname
-      }
-    }
-  }
-`
-const GET_ALL_USERS = gql`
-  query getAllUsers {
-    getAllUsers {
-      id
-      email
-      nickname
-    }
-  }
-`
+import { CREATE_USER, GET_TOKEN, GET_ALL_USERS } from './gql'
 
 const uuidRegex =
   /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/

@@ -14,9 +14,6 @@ export class BlogResolver {
           slug,
         },
         relations: {
-          articles: {
-            articleContent: true,
-          },
           user: {
             blogs: true,
           },
@@ -33,9 +30,6 @@ export class BlogResolver {
     try {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
-          articles: {
-            articleContent: true,
-          },
           user: {
             blogs: true,
           },
@@ -43,6 +37,7 @@ export class BlogResolver {
       })
       return blogs
     } catch (error) {
+      console.error(error)
       throw new Error('Something went wrong')
     }
   }
@@ -59,8 +54,9 @@ export class BlogResolver {
       const {
         userFromToken: { userId },
       } = context
-      const user = await dataSource.manager.findOneByOrFail(User, {
-        id: userId,
+      const user = await dataSource.manager.findOneOrFail(User, {
+        where: { id: userId },
+        relations: { blogs: true },
       })
       const newBlog = new Blog()
       newBlog.name = name

@@ -23,6 +23,14 @@ export class Article {
   id: string
 
   @Field()
+  @Column({ type: 'varchar' })
+  title: string
+
+  @Field()
+  @Column({ type: 'varchar' })
+  slug: string
+
+  @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
 
