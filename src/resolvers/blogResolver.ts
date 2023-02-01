@@ -2,15 +2,16 @@ import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
+import slugify from 'slugify'
 
 @Resolver(Blog)
 export class BlogResolver {
   @Query(() => Blog)
-  async getBlog(@Arg('blogId') blogId: string): Promise<Blog> {
+  async getBlog(@Arg('slug') slug: string): Promise<Blog> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
-          id: blogId,
+          slug,
         },
         relations: {
           articles: {
@@ -63,6 +64,30 @@ export class BlogResolver {
       })
       const newBlog = new Blog()
       newBlog.name = name
+      const baseSlug = slugify(name, {
+        replacement: '-',
+        remove: undefined,
+        lower: true,
+        strict: false,
+        locale: 'vi',
+        trim: true,
+      })
+      let newSlug = baseSlug
+
+      let i = 0
+      let blogExists = true
+      while (blogExists) {
+        const dataSlug = await dataSource.manager.findOne(Blog, {
+          where: { slug: newSlug },
+        })
+        if (dataSlug != null) {
+          i++
+          newSlug = `${baseSlug}_${i}`
+        } else {
+          blogExists = false
+        }
+      }
+      newBlog.slug = newSlug
       newBlog.description = description
       newBlog.user = user
       newBlog.template = template === null ? template : 0
