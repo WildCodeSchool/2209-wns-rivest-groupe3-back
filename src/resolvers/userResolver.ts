@@ -166,8 +166,8 @@ export class UserResolver {
         id,
       })
       if (
-        userNicknameExists?.nickname != null &&
-        userNicknameExists.id !== userId
+        userNicknameExists?.nickname !== null &&
+        userNicknameExists?.id !== userId
       ) {
         throw new UserInputError('Ce pseudo est déjà pris')
       }
@@ -176,7 +176,7 @@ export class UserResolver {
       email,
       id,
     })
-    if (userEmailExists != null && userEmailExists.id !== userId) {
+    if (userEmailExists !== null && userEmailExists.id !== userId) {
       throw new UserInputError(
         'Un compte existe déjà avec cette addresse email'
       )
