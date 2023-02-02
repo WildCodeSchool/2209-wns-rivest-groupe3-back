@@ -174,10 +174,11 @@ export class UserResolver {
     }
     const userEmailExists = await dataSource.manager.findOneBy(User, {
       email,
+      id,
     })
-    if (userEmailExists != null) {
+    if (userEmailExists != null && userEmailExists.id !== userId) {
       throw new UserInputError(
-        'An account already exists with this email address'
+        'Un compte existe déjà avec cette addresse email'
       )
     }
 
