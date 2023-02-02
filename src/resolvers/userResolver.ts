@@ -172,6 +172,15 @@ export class UserResolver {
         throw new UserInputError('Ce pseudo est déjà pris')
       }
     }
+    const userEmailExists = await dataSource.manager.findOneBy(User, {
+      email,
+    })
+    if (userEmailExists != null) {
+      throw new UserInputError(
+        'An account already exists with this email address'
+      )
+    }
+
     user.nickname = nickname !== undefined ? nickname : user.nickname
     user.email = email !== undefined ? email : user.email
     user.city = city !== undefined ? city : user.city
