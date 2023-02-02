@@ -15,6 +15,7 @@ import { Blog } from '../entities/Blog'
 import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
 import slugify from 'slugify'
+import { slugifyOptions } from '../config/slugifyOptions'
 
 @InputType()
 class IContentBlockData {
@@ -115,14 +116,7 @@ export class ArticleResolver {
       }
       const articleTitleAlreadyExists = await dataSource.manager.find(Article, {
         where: {
-          slug: slugify(title, {
-            replacement: '-',
-            remove: undefined,
-            lower: true,
-            strict: false,
-            locale: 'vi',
-            trim: true,
-          }),
+          slug: slugify(title, slugifyOptions),
           blog: { id: blog.id },
         },
       })
@@ -134,14 +128,7 @@ export class ArticleResolver {
       const newArticle = new Article()
       const version = 1
       newArticle.title = title
-      newArticle.slug = slugify(title, {
-        replacement: '-',
-        remove: undefined,
-        lower: true,
-        strict: false,
-        locale: 'vi',
-        trim: true,
-      })
+      newArticle.slug = slugify(title, slugifyOptions)
       newArticle.show = show
       newArticle.country = country
       newArticle.version = version
@@ -288,14 +275,7 @@ export class ArticleResolver {
           Article,
           {
             where: {
-              slug: slugify(title, {
-                replacement: '-',
-                remove: undefined,
-                lower: true,
-                strict: false,
-                locale: 'vi',
-                trim: true,
-              }),
+              slug: slugify(title, slugifyOptions),
               blog: { id: blog.id },
             },
           }
@@ -305,14 +285,7 @@ export class ArticleResolver {
             'An article with this title already exists in this blog.\n Consider changing the title or updating existing one'
           )
         article.title = title
-        article.slug = slugify(title, {
-          replacement: '-',
-          remove: undefined,
-          lower: true,
-          strict: false,
-          locale: 'vi',
-          trim: true,
-        })
+        article.slug = slugify(title, slugifyOptions)
       }
 
       // Save updated article to db

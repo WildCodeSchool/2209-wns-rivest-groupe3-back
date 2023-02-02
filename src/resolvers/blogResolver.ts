@@ -3,6 +3,7 @@ import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
 import slugify from 'slugify'
+import { slugifyOptions } from '../config/slugifyOptions'
 
 @Resolver(Blog)
 export class BlogResolver {
@@ -62,14 +63,7 @@ export class BlogResolver {
       })
       const newBlog = new Blog()
       newBlog.name = name
-      const baseSlug = slugify(name, {
-        replacement: '-',
-        remove: undefined,
-        lower: true,
-        strict: false,
-        locale: 'vi',
-        trim: true,
-      })
+      const baseSlug = slugify(name, slugifyOptions)
       let newSlug = baseSlug
 
       let i = 0
