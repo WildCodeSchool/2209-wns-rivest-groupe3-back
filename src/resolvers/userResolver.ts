@@ -141,6 +141,7 @@ export class UserResolver {
   @Mutation(() => User)
   async updateUser(
     @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('id', { nullable: true }) id?: string,
     @Arg('email', { nullable: true }) email?: string,
     @Arg('password', { nullable: true }) password?: string,
     @Arg('nickname', { nullable: true }) nickname?: string,
@@ -162,8 +163,12 @@ export class UserResolver {
     if (nickname !== undefined) {
       const userNicknameExists = await dataSource.manager.findOneBy(User, {
         nickname,
+        id,
       })
-      if (userNicknameExists != null) {
+      if (
+        userNicknameExists?.nickname != null &&
+        userNicknameExists.id !== userId
+      ) {
         throw new UserInputError('Ce pseudo est déjà pris')
       }
     }
