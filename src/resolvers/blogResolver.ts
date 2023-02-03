@@ -13,7 +13,6 @@ export class BlogResolver {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
           slug,
-          articles: { articleContent: { current: true } },
         },
         relations: {
           user: {
