@@ -35,6 +35,31 @@ export class UserResolver {
     })
   }
 
+  @Query(() => User)
+  async getOneUser(
+    @Arg('id') id: string,
+    @Arg('nickname', { nullable: true }) nickname: string,
+    @Arg('city', { nullable: true }) city: string,
+    @Arg('description', { nullable: true }) description: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('firstName', { nullable: true }) firstName: string,
+    @Arg('lastName', { nullable: true }) lastName: string
+  ): Promise<User> {
+    try {
+      const user = await dataSource.manager.findOneBy(User, {
+        id,
+      })
+      if (user != null) {
+        return user
+      } else {
+        throw new ApolloError('Unable to find the user')
+      }
+    } catch (err) {
+      console.error(err)
+      throw new ApolloError('Unable to access the user')
+    }
+  }
+
   @Mutation(() => User)
   async createUser(
     @Arg('email') email: string,
@@ -50,13 +75,15 @@ export class UserResolver {
       email,
     })
     if (userEmailExists != null) {
-      throw new UserInputError('Un compte existe déjà avec cette adresse email')
+      throw new UserInputError(
+        'An account already exists with this email address'
+      )
     }
     const userNicknameExists = await dataSource.manager.findOneBy(User, {
       nickname,
     })
     if (userNicknameExists != null) {
-      throw new UserInputError('Ce pseudo est déjà pris')
+      throw new UserInputError('This nickname is already used')
     }
 
     const newUser = new User()
@@ -114,6 +141,7 @@ export class UserResolver {
   @Mutation(() => User)
   async updateUser(
     @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('id', { nullable: true }) id?: string,
     @Arg('email', { nullable: true }) email?: string,
     @Arg('password', { nullable: true }) password?: string,
     @Arg('nickname', { nullable: true }) nickname?: string,
@@ -135,13 +163,26 @@ export class UserResolver {
     if (nickname !== undefined) {
       const userNicknameExists = await dataSource.manager.findOneBy(User, {
         nickname,
+        id,
       })
-      if (userNicknameExists != null) {
+      if (
+        userNicknameExists?.nickname !== null &&
+        userNicknameExists?.id !== userId
+      ) {
         throw new UserInputError('Ce pseudo est déjà pris')
       }
     }
-    user.nickname = nickname !== undefined ? nickname : user.nickname
+    const userEmailExists = await dataSource.manager.findOneBy(User, {
+      email,
+      id,
+    })
+    if (userEmailExists !== null && userEmailExists.id !== userId) {
+      throw new UserInputError(
+        'Un compte existe déjà avec cette addresse email'
+      )
+    }
 
+    user.nickname = nickname !== undefined ? nickname : user.nickname
     user.email = email !== undefined ? email : user.email
     user.city = city !== undefined ? city : user.city
     user.firstName = firstName !== undefined ? firstName : user.firstName
@@ -151,6 +192,7 @@ export class UserResolver {
     user.avatar = avatar !== undefined ? avatar : user.avatar
     user.password =
       password !== undefined ? await argon2.hash(password) : user.password
+    // user.newPassword = await argon2.hash(newPassword)
 
     const userFromDb = await dataSource.manager.save(User, user)
     return userFromDb
