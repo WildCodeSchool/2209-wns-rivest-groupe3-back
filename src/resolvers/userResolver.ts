@@ -1,8 +1,9 @@
 import * as argon2 from 'argon2'
-import { UserInputError, AuthenticationError } from 'apollo-server'
+import { UserInputError, ApolloError, AuthenticationError } from 'apollo-server'
 import {
   Arg,
   Authorized,
+  Ctx,
   Field,
   Mutation,
   ObjectType,
@@ -34,6 +35,31 @@ export class UserResolver {
     })
   }
 
+  @Query(() => User)
+  async getOneUser(
+    @Arg('id') id: string,
+    @Arg('nickname', { nullable: true }) nickname: string,
+    @Arg('city', { nullable: true }) city: string,
+    @Arg('description', { nullable: true }) description: string,
+    @Arg('avatar', { nullable: true }) avatar: string,
+    @Arg('firstName', { nullable: true }) firstName: string,
+    @Arg('lastName', { nullable: true }) lastName: string
+  ): Promise<User> {
+    try {
+      const user = await dataSource.manager.findOneBy(User, {
+        id,
+      })
+      if (user != null) {
+        return user
+      } else {
+        throw new ApolloError('Unable to find the user')
+      }
+    } catch (err) {
+      console.error(err)
+      throw new ApolloError('Unable to access the user')
+    }
+  }
+
   @Mutation(() => User)
   async createUser(
     @Arg('email') email: string,
@@ -49,13 +75,15 @@ export class UserResolver {
       email,
     })
     if (userEmailExists != null) {
-      throw new UserInputError('Un compte existe déjà avec cette adresse email')
+      throw new UserInputError(
+        'An account already exists with this email address'
+      )
     }
     const userNicknameExists = await dataSource.manager.findOneBy(User, {
       nickname,
     })
     if (userNicknameExists != null) {
-      throw new UserInputError('Ce pseudo est déjà pris')
+      throw new UserInputError('This nickname is already used')
     }
 
     const newUser = new User()
@@ -106,6 +134,88 @@ export class UserResolver {
       }
     } catch (err: any) {
       throw new AuthenticationError(err.message)
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => User)
+  async updateUser(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('id', { nullable: true }) id?: string,
+    @Arg('email', { nullable: true }) email?: string,
+    @Arg('password', { nullable: true }) password?: string,
+    @Arg('nickname', { nullable: true }) nickname?: string,
+    @Arg('city', { nullable: true }) city?: string,
+    @Arg('description', { nullable: true }) description?: string,
+    @Arg('avatar', { nullable: true }) avatar?: string,
+    @Arg('firstName', { nullable: true }) firstName?: string,
+    @Arg('lastName', { nullable: true }) lastName?: string
+  ): Promise<User> {
+    const {
+      userFromToken: { userId },
+    } = context
+    const user = await dataSource.manager.findOneByOrFail(User, {
+      id: userId,
+    })
+    if (user === null) {
+      throw new Error('user not found')
+    }
+    if (nickname !== undefined) {
+      const userNicknameExists = await dataSource.manager.findOneBy(User, {
+        nickname,
+        id,
+      })
+      if (
+        userNicknameExists?.nickname !== null &&
+        userNicknameExists?.id !== userId
+      ) {
+        throw new UserInputError('Ce pseudo est déjà pris')
+      }
+    }
+    const userEmailExists = await dataSource.manager.findOneBy(User, {
+      email,
+      id,
+    })
+    if (userEmailExists !== null && userEmailExists.id !== userId) {
+      throw new UserInputError(
+        'Un compte existe déjà avec cette addresse email'
+      )
+    }
+
+    user.nickname = nickname !== undefined ? nickname : user.nickname
+    user.email = email !== undefined ? email : user.email
+    user.city = city !== undefined ? city : user.city
+    user.firstName = firstName !== undefined ? firstName : user.firstName
+    user.lastName = lastName !== undefined ? lastName : user.lastName
+    user.description =
+      description !== undefined ? description : user.description
+    user.avatar = avatar !== undefined ? avatar : user.avatar
+    user.password =
+      password !== undefined ? await argon2.hash(password) : user.password
+    // user.newPassword = await argon2.hash(newPassword)
+
+    const userFromDb = await dataSource.manager.save(User, user)
+    return userFromDb
+  }
+
+  @Authorized()
+  @Mutation(() => String)
+  async deleteUser(
+    @Ctx() context: { userFromToken: { userId: string } }
+  ): Promise<String> {
+    try {
+      const {
+        userFromToken: { userId },
+      } = context
+      await dataSource.manager.findOneByOrFail(User, {
+        id: userId,
+      })
+      const deletedMessage = `Compte supprimé avec succès`
+      await dataSource.manager.delete(User, userId)
+      return deletedMessage
+    } catch (err) {
+      console.error(err)
+      throw new ApolloError('Impossible de supprimer le comtpe')
     }
   }
 }
