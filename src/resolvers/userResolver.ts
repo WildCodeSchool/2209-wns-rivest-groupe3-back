@@ -192,6 +192,7 @@ export class UserResolver {
     user.avatar = avatar !== undefined ? avatar : user.avatar
     user.password =
       password !== undefined ? await argon2.hash(password) : user.password
+    // user.newPassword = await argon2.hash(newPassword)
 
     const userFromDb = await dataSource.manager.save(User, user)
     return userFromDb
