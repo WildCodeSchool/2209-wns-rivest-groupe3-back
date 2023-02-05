@@ -44,6 +44,26 @@ export class BlogResolver {
     }
   }
 
+  @Mutation(()=>Blog)
+  async deleteAll(): Promise<any>{
+    try {
+      const blogs = await dataSource.manager.find(Blog, {
+        relations: {
+          articles: {
+            articleContent: true,
+          },
+          user: {
+            blogs: true,
+          },
+        },
+      })
+      blogs.forEach(async blog => await dataSource.manager.remove(blog))
+      return blogs
+    } catch (error) {
+      throw new Error('Something went wrong')
+    }
+  }
+
   @Authorized()
   @Mutation(() => Blog)
   async createBlog(
@@ -81,7 +101,7 @@ export class BlogResolver {
       newBlog.slug = newSlug
       newBlog.description = description
       newBlog.user = user
-      newBlog.template = template === null ? template : 0
+      newBlog.template = template ? template : 1
       const newBlogFromDb = await dataSource.manager.save(newBlog)
 
       if (user.blogs !== undefined && user.blogs.length > 0) {
