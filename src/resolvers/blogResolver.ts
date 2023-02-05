@@ -3,6 +3,7 @@ import dataSource from '../utils'
 import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
 import slugify from 'slugify'
+import { slugifyOptions } from '../config/slugifyOptions'
 
 @Resolver(Blog)
 export class BlogResolver {
@@ -14,12 +15,10 @@ export class BlogResolver {
           slug,
         },
         relations: {
-          articles: {
-            articleContent: true,
-          },
           user: {
             blogs: true,
           },
+          articles: { articleContent: true },
         },
       })
       return blog
@@ -33,6 +32,23 @@ export class BlogResolver {
     try {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
+          user: {
+            blogs: true,
+          },
+        },
+      })
+      return blogs
+    } catch (error) {
+      console.error(error)
+      throw new Error('Something went wrong')
+    }
+  }
+
+  @Mutation(()=>Blog)
+  async deleteAll(): Promise<any>{
+    try {
+      const blogs = await dataSource.manager.find(Blog, {
+        relations: {
           articles: {
             articleContent: true,
           },
@@ -41,6 +57,7 @@ export class BlogResolver {
           },
         },
       })
+      blogs.forEach(async blog => await dataSource.manager.remove(blog))
       return blogs
     } catch (error) {
       throw new Error('Something went wrong')
@@ -59,19 +76,13 @@ export class BlogResolver {
       const {
         userFromToken: { userId },
       } = context
-      const user = await dataSource.manager.findOneByOrFail(User, {
-        id: userId,
+      const user = await dataSource.manager.findOneOrFail(User, {
+        where: { id: userId },
+        relations: { blogs: true },
       })
       const newBlog = new Blog()
       newBlog.name = name
-      const baseSlug: string = slugify(name, {
-        replacement: '-',
-        remove: undefined,
-        lower: true,
-        strict: false,
-        locale: 'vi',
-        trim: true,
-      })
+      const baseSlug = slugify(name, slugifyOptions)
       let newSlug = baseSlug
 
       let i = 0
@@ -90,7 +101,7 @@ export class BlogResolver {
       newBlog.slug = newSlug
       newBlog.description = description
       newBlog.user = user
-      newBlog.template = template === null ? template : 0
+      newBlog.template = template ? template : 1
       const newBlogFromDb = await dataSource.manager.save(newBlog)
 
       if (user.blogs !== undefined && user.blogs.length > 0) {
