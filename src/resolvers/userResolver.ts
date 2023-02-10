@@ -213,34 +213,35 @@ export class UserResolver {
       throw new Error('user not found')
     }
 
-    // TODO check if old password match with dbpassword before updating
-
-    // const hashedOldPassword = await argon2.hash(oldPassword)
-    // if (user.password !== hashedOldPassword) {
-    //   throw new Error("Password doesn't match")
-    // }
-
-    user.password = await argon2.hash(newPassword)
-    const userFromDb = await dataSource.manager.save(User, user)
-
-    return userFromDb
+    if (await argon2.verify(user.password, oldPassword)) {
+      user.password = await argon2.hash(newPassword)
+      return await dataSource.manager.save(User, user)
+    } else {
+      throw new Error("Password doesn't match")
+    }
   }
 
   @Authorized()
   @Mutation(() => String)
   async deleteUser(
-    @Ctx() context: { userFromToken: { userId: string } }
+    @Ctx() context: { userFromToken: { userId: string } },
+    @Arg('password') password: string
   ): Promise<String> {
     try {
       const {
         userFromToken: { userId },
       } = context
-      await dataSource.manager.findOneByOrFail(User, {
+      const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })
-      const deletedMessage = `Compte supprimé avec succès`
-      await dataSource.manager.delete(User, userId)
-      return deletedMessage
+      if (await argon2.verify(user.password, password)) {
+        const deletedMessage = `Compte supprimé avec succès`
+        console.log(deletedMessage)
+        await dataSource.manager.delete(User, userId)
+        return deletedMessage
+      } else {
+        throw new Error("Password doesn't match")
+      }
     } catch (err) {
       console.error(err)
       throw new ApolloError('Impossible de supprimer le comtpe')
