@@ -43,7 +43,8 @@ export class UserResolver {
     @Arg('description', { nullable: true }) description: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('firstName', { nullable: true }) firstName: string,
-    @Arg('lastName', { nullable: true }) lastName: string
+    @Arg('lastName', { nullable: true }) lastName: string,
+    @Arg('password', { nullable: true }) password: string
   ): Promise<User> {
     try {
       const user = await dataSource.manager.findOneBy(User, {
@@ -190,11 +191,38 @@ export class UserResolver {
     user.description =
       description !== undefined ? description : user.description
     user.avatar = avatar !== undefined ? avatar : user.avatar
-    user.password =
-      password !== undefined ? await argon2.hash(password) : user.password
-    // user.newPassword = await argon2.hash(newPassword)
 
     const userFromDb = await dataSource.manager.save(User, user)
+    return userFromDb
+  }
+
+  @Authorized()
+  @Mutation(() => User)
+  async updateUserPassword(
+    @Ctx() context: { userFromToken: { userId: string } },
+    @Arg('oldPassword') oldPassword: string,
+    @Arg('newPassword') newPassword: string
+  ): Promise<User> {
+    const {
+      userFromToken: { userId },
+    } = context
+    const user = await dataSource.manager.findOneBy(User, {
+      id: userId,
+    })
+    if (user === null) {
+      throw new Error('user not found')
+    }
+
+    // TODO check if old password match with dbpassword before updating
+
+    // const hashedOldPassword = await argon2.hash(oldPassword)
+    // if (user.password !== hashedOldPassword) {
+    //   throw new Error("Password doesn't match")
+    // }
+
+    user.password = await argon2.hash(newPassword)
+    const userFromDb = await dataSource.manager.save(User, user)
+
     return userFromDb
   }
 
