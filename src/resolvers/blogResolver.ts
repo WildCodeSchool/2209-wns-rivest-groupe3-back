@@ -44,26 +44,6 @@ export class BlogResolver {
     }
   }
 
-  @Mutation(() => Blog)
-  async deleteAll(): Promise<any> {
-    try {
-      const blogs = await dataSource.manager.find(Blog, {
-        relations: {
-          articles: {
-            articleContent: true,
-          },
-          user: {
-            blogs: true,
-          },
-        },
-      })
-      blogs.forEach(async (blog) => await dataSource.manager.remove(blog))
-      return blogs
-    } catch (error) {
-      throw new Error('Something went wrong')
-    }
-  }
-
   @Authorized()
   @Mutation(() => Blog)
   async createBlog(
