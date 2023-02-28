@@ -43,7 +43,8 @@ export class UserResolver {
     @Arg('description', { nullable: true }) description: string,
     @Arg('avatar', { nullable: true }) avatar: string,
     @Arg('firstName', { nullable: true }) firstName: string,
-    @Arg('lastName', { nullable: true }) lastName: string
+    @Arg('lastName', { nullable: true }) lastName: string,
+    @Arg('password', { nullable: true }) password: string
   ): Promise<User> {
     try {
       const user = await dataSource.manager.findOneBy(User, {
@@ -190,29 +191,57 @@ export class UserResolver {
     user.description =
       description !== undefined ? description : user.description
     user.avatar = avatar !== undefined ? avatar : user.avatar
-    user.password =
-      password !== undefined ? await argon2.hash(password) : user.password
-    // user.newPassword = await argon2.hash(newPassword)
 
     const userFromDb = await dataSource.manager.save(User, user)
     return userFromDb
   }
 
   @Authorized()
+  @Mutation(() => User)
+  async updateUserPassword(
+    @Ctx() context: { userFromToken: { userId: string } },
+    @Arg('oldPassword') oldPassword: string,
+    @Arg('newPassword') newPassword: string
+  ): Promise<User> {
+    const {
+      userFromToken: { userId },
+    } = context
+    const user = await dataSource.manager.findOneBy(User, {
+      id: userId,
+    })
+    if (user === null) {
+      throw new Error('user not found')
+    }
+
+    if (await argon2.verify(user.password, oldPassword)) {
+      user.password = await argon2.hash(newPassword)
+      return await dataSource.manager.save(User, user)
+    } else {
+      throw new Error("Password doesn't match")
+    }
+  }
+
+  @Authorized()
   @Mutation(() => String)
   async deleteUser(
-    @Ctx() context: { userFromToken: { userId: string } }
+    @Ctx() context: { userFromToken: { userId: string } },
+    @Arg('password') password: string
   ): Promise<String> {
     try {
       const {
         userFromToken: { userId },
       } = context
-      await dataSource.manager.findOneByOrFail(User, {
+      const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })
-      const deletedMessage = `Compte supprimé avec succès`
-      await dataSource.manager.delete(User, userId)
-      return deletedMessage
+      if (await argon2.verify(user.password, password)) {
+        const deletedMessage = `Compte supprimé avec succès`
+        console.log(deletedMessage)
+        await dataSource.manager.delete(User, userId)
+        return deletedMessage
+      } else {
+        throw new Error("Password doesn't match")
+      }
     } catch (err) {
       console.error(err)
       throw new ApolloError('Impossible de supprimer le comtpe')
