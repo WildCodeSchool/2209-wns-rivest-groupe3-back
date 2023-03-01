@@ -1,41 +1,12 @@
 import client from './clientUtil'
 import clearAllEntities from './setupDb'
-import { CREATE_USER, GET_TOKEN, GET_ALL_USERS } from './gql'
-
-const UPDATE_USER = gql`
-  mutation UpdateUser(
-    $lastName: String
-    $firstName: String
-    $avatar: String
-    $description: String
-    $city: String
-    $password: String
-    $email: String
-    $nickname: String
-  ) {
-    updateUser(
-      lastName: $lastName
-      firstName: $firstName
-      avatar: $avatar
-      description: $description
-      city: $city
-      password: $password
-      email: $email
-      nickname: $nickname
-    ) {
-      id
-      email
-      nickname
-      city
-      firstName
-      lastName
-      description
-      avatar
-      createdAt
-      lastLogin
-    }
-  }
-`
+import {
+  CREATE_USER,
+  GET_TOKEN,
+  GET_ALL_USERS,
+  UPDATE_USER,
+  UPDATE_USER_PASSWORD,
+} from './gql'
 
 const testUserData = {
   email: 'test-user@test.com',
@@ -105,7 +76,9 @@ describe('User resolver', () => {
     })
     const errorMessage = res.errors?.[0]?.message
     expect(res.errors).toHaveLength(1)
-    expect(errorMessage).toBe('Un compte existe déjà avec cette adresse email')
+    expect(errorMessage).toBe(
+      'An account already exists with this email address'
+    )
   })
 
   it('throws an error if nickname is already taken', async () => {
@@ -119,7 +92,7 @@ describe('User resolver', () => {
     })
     const errorMessage = res.errors?.[0]?.message
     expect(res.errors).toHaveLength(1)
-    expect(errorMessage).toBe('Ce pseudo est déjà pris')
+    expect(errorMessage).toBe('This nickname is already taken')
   })
 
   it('gets a token', async () => {
@@ -218,6 +191,8 @@ describe('User resolver', () => {
         },
       },
       variables: {
+        email,
+        nickname,
         lastName,
         firstName,
         avatar,
@@ -225,6 +200,7 @@ describe('User resolver', () => {
         city,
       },
     })
+
     expect(res.data?.updateUser.id).toMatch(uuidRegex)
     expect(res.data?.updateUser).toMatchObject({
       email,
@@ -238,7 +214,7 @@ describe('User resolver', () => {
   })
 
   it("partially updates a user's information and gets a token with new password", async () => {
-    const { password, avatar, city } = partialUpdateTestUserData
+    const { avatar, city } = partialUpdateTestUserData
     const tokenRes = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
@@ -257,7 +233,6 @@ describe('User resolver', () => {
       variables: {
         avatar,
         city,
-        password,
       },
     })
     expect(res.data?.updateUser.id).toMatch(uuidRegex)
@@ -270,14 +245,49 @@ describe('User resolver', () => {
       description: testUserData.description,
       city,
     })
+  })
+
+  it('updates users password, then fetches token with new password', async () => {
+    const tokenRes = await client.mutate({
+      mutation: GET_TOKEN,
+      variables: {
+        email: testUserData.email,
+        password: testUserData.password,
+      },
+    })
+    const { token } = tokenRes.data?.getToken
+
+    const res = await client.mutate({
+      mutation: UPDATE_USER_PASSWORD,
+      context: {
+        headers: {
+          authorization: token,
+        },
+      },
+      variables: {
+        oldPassword: testUserData.password,
+        newPassword: partialUpdateTestUserData.password,
+      },
+    })
+    expect(res.data?.updateUserPassword.id).toMatch(uuidRegex)
+    expect(res.data?.updateUserPassword).toMatchObject({
+      email: testUserData.email,
+      nickname: testUserData.nickname,
+      lastName: testUserData.lastName,
+      firstName: testUserData.firstName,
+      avatar: partialUpdateTestUserData.avatar,
+      description: testUserData.description,
+      city: partialUpdateTestUserData.city,
+    })
 
     const newTokenRes = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
         email: testUserData.email,
-        password,
+        password: partialUpdateTestUserData.password,
       },
     })
+
     expect(newTokenRes.data?.getToken.token).toMatch(jwtRegex)
   })
 
