@@ -11,9 +11,12 @@ jobs:
       - name: create env file
         run: |
           touch .env.test
-          echo "NODE_ENV=test PORT=5555 JWT_SECRET_KEY=05165447ad9dc0ee73ebd61faeaf0830" >> .env.test
+          echo "NODE_ENV=test
+          PORT=5555
+          JWT_SECRET_KEY=05165447ad9dc0ee73ebd61faeaf0830
+          " >> .env.test
       - name: Run tests
-        run: npm run test
+        run: npm i && npm run test
   docker:
     needs: run-tests
     if: github.ref == 'refs/heads/main'
