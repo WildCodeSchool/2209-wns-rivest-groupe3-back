@@ -53,7 +53,7 @@ describe('Blog resolver', () => {
       createBlog: {
         name: 'My Test Blog',
         description: 'A test description for a blog',
-        template: 0,
+        template: 1,
       },
     })
     expect(res.data?.createBlog.id).toMatch(uuidRegex)
@@ -83,7 +83,7 @@ describe('Blog resolver', () => {
     expect(res.data.getAllBlogs[0]).toMatchObject({
       name: 'My Test Blog',
       description: 'A test description for a blog',
-      template: 0,
+      template: 1,
       user: {
         nickname,
       },

@@ -31,6 +31,54 @@ export const GET_ALL_USERS = gql`
     }
   }
 `
+export const UPDATE_USER = gql`
+  mutation UpdateUser(
+    $lastName: String
+    $firstName: String
+    $avatar: String
+    $description: String
+    $city: String
+    $email: String
+    $nickname: String
+  ) {
+    updateUser(
+      lastName: $lastName
+      firstName: $firstName
+      avatar: $avatar
+      description: $description
+      city: $city
+      email: $email
+      nickname: $nickname
+    ) {
+      id
+      email
+      nickname
+      city
+      firstName
+      lastName
+      description
+      avatar
+      createdAt
+      lastLogin
+    }
+  }
+`
+export const UPDATE_USER_PASSWORD = gql`
+  mutation UpdateUserPassword($newPassword: String!, $oldPassword: String!) {
+    updateUserPassword(newPassword: $newPassword, oldPassword: $oldPassword) {
+      id
+      email
+      nickname
+      city
+      firstName
+      lastName
+      description
+      avatar
+      createdAt
+      lastLogin
+    }
+  }
+`
 
 // Blog Queries
 export const CREATE_BLOG = gql`

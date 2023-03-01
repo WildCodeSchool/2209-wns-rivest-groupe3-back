@@ -45,26 +45,6 @@ export class BlogResolver {
     }
   }
 
-  @Mutation(() => Blog)
-  async deleteAll(): Promise<any> {
-    try {
-      const blogs = await dataSource.manager.find(Blog, {
-        relations: {
-          articles: {
-            articleContent: true,
-          },
-          user: {
-            blogs: true,
-          },
-        },
-      })
-      blogs.forEach(async (blog) => await dataSource.manager.remove(blog))
-      return blogs
-    } catch (error) {
-      throw new Error('Something went wrong')
-    }
-  }
-
   @Authorized()
   @Mutation(() => Blog)
   async createBlog(
@@ -102,7 +82,7 @@ export class BlogResolver {
       newBlog.slug = newSlug
       newBlog.description = description
       newBlog.user = user
-      newBlog.template = template != null ? template : 1
+      newBlog.template = template ?? 1
       const newBlogFromDb = await dataSource.manager.save(newBlog)
 
       if (user.blogs !== undefined && user.blogs.length > 0) {
@@ -115,6 +95,93 @@ export class BlogResolver {
       return newBlogFromDb
     } catch (error) {
       console.log(error)
+      throw new Error('Something went wrong')
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => Blog)
+  async updateBlog(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('blogSlug') blogSlug: string,
+    @Arg('name', { nullable: true }) name?: string,
+    @Arg('description', { nullable: true }) description?: string,
+    @Arg('template', { nullable: true }) template?: number
+  ): Promise<Blog> {
+    try {
+      const { userFromToken } = context
+      const blogToUpdate = await dataSource.manager.findOneOrFail(Blog, {
+        where: { slug: blogSlug },
+        relations: {
+          user: true,
+        },
+      })
+
+      if (blogToUpdate.user.id !== userFromToken.userId) {
+        throw new Error('You are not allowed to update this blog')
+      }
+
+      if (name !== undefined) {
+        blogToUpdate.name = name
+
+        const baseSlug = slugify(name, slugifyOptions)
+        let newSlug = baseSlug
+
+        if (newSlug !== blogSlug) {
+          let i = 0
+          let blogExists = true
+          while (blogExists) {
+            const dataSlug = await dataSource.manager.findOne(Blog, {
+              where: { slug: newSlug },
+            })
+            if (dataSlug != null) {
+              i++
+              newSlug = `${baseSlug}_${i}`
+            } else {
+              blogExists = false
+            }
+          }
+          blogToUpdate.slug = newSlug
+        }
+      }
+
+      if (description !== undefined) blogToUpdate.description = description
+      if (template !== undefined) blogToUpdate.template = template
+
+      await dataSource.manager.save(blogToUpdate)
+      return blogToUpdate
+    } catch (err) {
+      console.log(err)
+      throw new Error('Something went wrong')
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => String)
+  async deleteBlog(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('blogSlug') blogSlug: string
+  ): Promise<string> {
+    try {
+      const { userFromToken } = context
+
+      const blogToDelete = await dataSource.manager.findOneOrFail(Blog, {
+        where: {
+          slug: blogSlug,
+        },
+        relations: {
+          user: true,
+        },
+      })
+
+      if (userFromToken.userId !== blogToDelete.user.id) {
+        throw new Error('You are not allowed to delete this blog')
+      }
+
+      await dataSource.manager.delete(Blog, blogToDelete)
+      return 'Blog was deleted successfully'
+    } catch (err) {
+      console.log(err)
       throw new Error('Something went wrong')
     }
   }
