@@ -13,7 +13,6 @@ export class BlogResolver {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
         where: {
           slug,
-          articles: { show: true },
         },
         relations: {
           user: {
@@ -24,6 +23,7 @@ export class BlogResolver {
       })
       return blog
     } catch (error) {
+      console.error(error)
       throw new Error('Something went wrong')
     }
   }
