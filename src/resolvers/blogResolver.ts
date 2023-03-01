@@ -17,6 +17,7 @@ export class BlogResolver {
           user: {
             blogs: true,
           },
+          articles: true,
         },
       })
       return blog
@@ -26,19 +27,37 @@ export class BlogResolver {
   }
 
   @Query(() => [Blog])
-  async getAllBlogs(): Promise<Blog[]> {
+  async getAllBlogs(
+    @Arg('limit', { nullable: true }) limit?: number,
+    @Arg('offset', { nullable: true }) offset?: number
+  ): Promise<Blog[]> {
     try {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
           user: {
             blogs: true,
           },
+          articles: true,
         },
+        take: limit,
+        skip: offset,
       })
+
       return blogs
     } catch (error) {
       console.error(error)
       throw new Error('Something went wrong')
+    }
+  }
+
+  @Query(() => Number)
+  async getNumberOfBlogs(): Promise<number> {
+    try {
+      const count = await dataSource.getRepository(Blog).count()
+      return count
+    } catch (err) {
+      console.log(err)
+      throw new Error('Could not retreive number of blogs')
     }
   }
 
