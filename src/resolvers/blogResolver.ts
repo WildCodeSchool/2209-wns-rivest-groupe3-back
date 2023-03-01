@@ -53,8 +53,8 @@ export class BlogResolver {
   @Query(() => Number)
   async getNumberOfBlogs(): Promise<number> {
     try {
-      const blogs = await dataSource.manager.find(Blog)
-      return blogs.length
+      const count = await dataSource.getRepository(Blog).count()
+      return count
     } catch (err) {
       console.log(err)
       throw new Error('Could not retreive number of blogs')
