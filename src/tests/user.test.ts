@@ -2,6 +2,71 @@ import client from './clientUtil'
 import clearAllEntities from './setupDb'
 import { CREATE_USER, GET_TOKEN, GET_ALL_USERS } from './gql'
 
+const UPDATE_USER = gql`
+  mutation UpdateUser(
+    $lastName: String
+    $firstName: String
+    $avatar: String
+    $description: String
+    $city: String
+    $password: String
+    $email: String
+    $nickname: String
+  ) {
+    updateUser(
+      lastName: $lastName
+      firstName: $firstName
+      avatar: $avatar
+      description: $description
+      city: $city
+      password: $password
+      email: $email
+      nickname: $nickname
+    ) {
+      id
+      email
+      nickname
+      city
+      firstName
+      lastName
+      description
+      avatar
+      createdAt
+      lastLogin
+    }
+  }
+`
+
+const testUserData = {
+  email: 'test-user@test.com',
+  password: 'test',
+  nickname: 'test',
+  lastName: 'Test',
+  firstName: 'Mister',
+  avatar:
+    'https://img.freepik.com/vecteurs-libre/homme-mafieux-mysterieux-fumant-cigarette_52683-34828.jpg?w=1380&t=st=1674848201~exp=1674848801~hmac=11eca556d742ceedc183dd83a44cde1585018136be0e7662e89a65ad86ebb9b1',
+  description: 'Test description',
+  city: 'Testville',
+}
+
+const testUserData2 = {
+  email: 'test-user2@test.com',
+  password: 'tester',
+  nickname: 'test2',
+  lastName: 'Testo',
+  firstName: 'Madam',
+  avatar:
+    'https://img.freepik.com/vecteurs-libre/homme-mafieux-mysterieux-fumant-cigarette_52683-34828.jpg?w=1380&t=st=1674848201~exp=1674848801~hmac=11eca556d742ceedc183dd83a44cde1585018136be0e7662e89a65ad86ebb9b1',
+  description: 'Test2 description2',
+  city: 'Testopolis',
+}
+
+const partialUpdateTestUserData = {
+  avatar: 'New image url',
+  city: 'Updateville',
+  password: 'newP@sswœrd',
+}
+
 const uuidRegex =
   /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/
 
@@ -15,15 +80,15 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: CREATE_USER,
       variables: {
-        email: 'test-user@test.com',
-        password: 'test',
-        nickname: 'test',
+        email: testUserData.email,
+        password: testUserData.password,
+        nickname: testUserData.nickname,
       },
     })
     expect(res.data).toMatchObject({
       createUser: {
-        email: 'test-user@test.com',
-        nickname: 'test',
+        email: testUserData.email,
+        nickname: testUserData.nickname,
       },
     })
     expect(res.data?.createUser.id).toMatch(uuidRegex)
@@ -33,9 +98,9 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: CREATE_USER,
       variables: {
-        email: 'test-user@test.com',
-        password: 'test',
-        nickname: 'test',
+        email: testUserData.email,
+        password: testUserData.password,
+        nickname: testUserData.nickname,
       },
     })
     const errorMessage = res.errors?.[0]?.message
@@ -48,8 +113,8 @@ describe('User resolver', () => {
       mutation: CREATE_USER,
       variables: {
         email: 'test2@test.com',
-        password: 'test',
-        nickname: 'test',
+        password: testUserData.password,
+        nickname: testUserData.nickname,
       },
     })
     const errorMessage = res.errors?.[0]?.message
@@ -61,8 +126,8 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test-user@test.com',
-        password: 'test',
+        email: testUserData.email,
+        password: testUserData.password,
       },
     })
     expect(res.data?.getToken.token).toMatch(jwtRegex)
@@ -72,7 +137,7 @@ describe('User resolver', () => {
     const res = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test-user@test.com',
+        email: testUserData.email,
         password: 'wrong',
       },
     })
@@ -86,7 +151,7 @@ describe('User resolver', () => {
       mutation: GET_TOKEN,
       variables: {
         email: 'fake-email@test.com',
-        password: 'wrong',
+        password: testUserData.password,
       },
     })
     const errorMessage = res.errors?.[0]?.message
@@ -109,8 +174,8 @@ describe('User resolver', () => {
     const tokenRes = await client.mutate({
       mutation: GET_TOKEN,
       variables: {
-        email: 'test-user@test.com',
-        password: 'test',
+        email: testUserData.email,
+        password: testUserData.password,
       },
     })
     const { token } = tokenRes.data?.getToken
@@ -123,5 +188,137 @@ describe('User resolver', () => {
       },
     })
     expect(res.data?.getAllUsers.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it("updates a user's information", async () => {
+    const {
+      email,
+      password,
+      nickname,
+      lastName,
+      firstName,
+      avatar,
+      description,
+      city,
+    } = testUserData
+    const tokenRes = await client.mutate({
+      mutation: GET_TOKEN,
+      variables: {
+        email,
+        password,
+      },
+    })
+
+    const { token } = tokenRes.data?.getToken
+    const res = await client.mutate({
+      mutation: UPDATE_USER,
+      context: {
+        headers: {
+          authorization: token,
+        },
+      },
+      variables: {
+        lastName,
+        firstName,
+        avatar,
+        description,
+        city,
+      },
+    })
+    expect(res.data?.updateUser.id).toMatch(uuidRegex)
+    expect(res.data?.updateUser).toMatchObject({
+      email,
+      nickname,
+      lastName,
+      firstName,
+      avatar,
+      description,
+      city,
+    })
+  })
+
+  it("partially updates a user's information and gets a token with new password", async () => {
+    const { password, avatar, city } = partialUpdateTestUserData
+    const tokenRes = await client.mutate({
+      mutation: GET_TOKEN,
+      variables: {
+        email: testUserData.email,
+        password: testUserData.password,
+      },
+    })
+    const { token } = tokenRes.data?.getToken
+    const res = await client.mutate({
+      mutation: UPDATE_USER,
+      context: {
+        headers: {
+          authorization: token,
+        },
+      },
+      variables: {
+        avatar,
+        city,
+        password,
+      },
+    })
+    expect(res.data?.updateUser.id).toMatch(uuidRegex)
+    expect(res.data?.updateUser).toMatchObject({
+      email: testUserData.email,
+      nickname: testUserData.nickname,
+      lastName: testUserData.lastName,
+      firstName: testUserData.firstName,
+      avatar,
+      description: testUserData.description,
+      city,
+    })
+
+    const newTokenRes = await client.mutate({
+      mutation: GET_TOKEN,
+      variables: {
+        email: testUserData.email,
+        password,
+      },
+    })
+    expect(newTokenRes.data?.getToken.token).toMatch(jwtRegex)
+  })
+
+  it('creates a 2nd user and then fails if first user updates nickname with 2nd user nickame', async () => {
+    const res = await client.mutate({
+      mutation: CREATE_USER,
+      variables: {
+        email: testUserData2.email,
+        password: testUserData2.password,
+        nickname: testUserData2.nickname,
+      },
+    })
+    expect(res.data).toMatchObject({
+      createUser: {
+        email: testUserData2.email,
+        nickname: testUserData2.nickname,
+      },
+    })
+    const tokenRes = await client.mutate({
+      mutation: GET_TOKEN,
+      variables: {
+        email: testUserData.email,
+        password: partialUpdateTestUserData.password,
+      },
+    })
+    const { token } = tokenRes.data?.getToken
+
+    const failedUpdateRes = await client.mutate({
+      mutation: UPDATE_USER,
+      context: {
+        headers: {
+          authorization: token,
+        },
+      },
+      variables: {
+        nickname: testUserData2.nickname,
+      },
+    })
+
+    const errorMessage = failedUpdateRes.errors?.[0]?.message
+    expect(failedUpdateRes.errors).toHaveLength(1)
+    expect(errorMessage).toBe('Ce pseudo est déjà pris')
   })
 })
