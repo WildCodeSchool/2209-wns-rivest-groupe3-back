@@ -36,4 +36,5 @@ jobs:
         with:
           push: true
           context: "{{defaultContext}}"
+          file: ./Dockerfile.dev
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tabas-back:latest
