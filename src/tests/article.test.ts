@@ -23,7 +23,7 @@ const articleTestUserInfo2 = {
 
 const articleContent: IContentType = {
   time: 1674731194,
-  version: 1,
+  version: '2.26.5',
   blocks: [
     {
       id: 'oUq2g_tl8y',
@@ -37,7 +37,7 @@ const articleContent: IContentType = {
 }
 const articleContentUpdate: IContentType = {
   time: 1674733194,
-  version: 2,
+  version: '2.26.5',
   blocks: [
     {
       id: 'oUq2g_tl8y',

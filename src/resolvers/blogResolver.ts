@@ -23,6 +23,7 @@ export class BlogResolver {
       })
       return blog
     } catch (error) {
+      console.error(error)
       throw new Error('Something went wrong')
     }
   }
