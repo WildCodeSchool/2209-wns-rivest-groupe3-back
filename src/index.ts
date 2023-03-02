@@ -1,48 +1,57 @@
 import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server'
-import datasource from './utils'
+import { buildSchema } from 'type-graphql'
+import dataSource from './utils'
+import jwt from 'jsonwebtoken'
+import * as dotenv from 'dotenv'
+import * as path from 'path'
 
-const port = 5000
+dotenv.config()
 
-const typeDefs = `#graphql
-  type Book {
-    title: String
-    author: String
-  }
-  type Query {
-    books: [Book]
-  }
-`
-
-const books = [
-    {
-        title: 'The Awakening',
-        author: 'Kate Chopin',
-    },
-    {
-        title: 'City of Glass',
-        author: 'Paul Auster',
-    },
-]
-const resolvers = {
-    Query: {
-        books: () => books,
-    },
-}
+const port = process.env.PORT ?? 5000
 
 const start = async (): Promise<void> => {
-    await datasource.initialize()
-    const server = new ApolloServer({
-        typeDefs,
-        resolvers,
-    })
+  await dataSource.initialize()
+  await dataSource.runMigrations()
+  const schema = await buildSchema({
+    resolvers: [path.join(__dirname, './resolvers/*.ts')],
+    authChecker: ({ context }) => {
+      const { userFromToken: { email } = { email: null } } = context
+      if (email === null) return false
+      else return true
+    },
+  })
+  const server = new ApolloServer({
+    schema,
+    context: ({ req }) => {
+      if (
+        req.headers.authorization === undefined ||
+        process.env.JWT_SECRET_KEY === undefined
+      )
+        return {}
+      else {
+        try {
+          const bearer = req.headers.authorization
+          if (bearer.length > 0) {
+            const userFromToken = jwt.verify(bearer, process.env.JWT_SECRET_KEY)
+            return { userFromToken }
+          } else {
+            return {}
+          }
+        } catch (err) {
+          console.error(err)
+          return {}
+        }
+      }
+    },
+  })
 
-    try {
-        const { url }: { url: string } = await server.listen({ port })
-        console.log(`🚀  Server ready at ${url}`)
-    } catch (error) {
-        console.error('Error starting the server')
-    }
+  try {
+    const { url }: { url: string } = await server.listen({ port })
+    console.log(`🚀  Server ready at ${url}`)
+  } catch (error) {
+    console.error('Error starting the server')
+  }
 }
 
 void start()

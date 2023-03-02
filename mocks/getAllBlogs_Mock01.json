@@ -1,0 +1,181 @@
+{
+  "id": "9b53943b-9a3a-49cd-bd1b-8df7058b0295",
+  "name": "Mock 1",
+  "description": "A description of mock's 1st blog",
+  "template": 0,
+  "createdAt": "2023-01-26T11:03:44.789Z",
+  "articles": [
+    {
+      "id": "03b4d4a6-c5f0-4bdd-ae85-a209a155ee6a",
+      "createdAt": "2023-01-26T11:29:13.349Z",
+      "postedAt": "2023-01-26T11:29:13.314Z",
+      "show": true,
+      "country": null,
+      "version": 1,
+      "articleContent": [
+        {
+          "id": "d85c71ad-dd49-4b26-9fee-f649d31521f4",
+          "content": {
+            "time": 1674731194,
+            "version": "2.8.1",
+            "blocks": [
+              {
+                "id": "oUq2g_tl8y",
+                "type": "header",
+                "data": {
+                  "text": "Editor.js",
+                  "level": 2,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "zbGZFPM-iI",
+                "type": "paragraph",
+                "data": {
+                  "text": "Hey. Meet the new Editor. On this page you can see it in action — try to edit this text. Source code of the page contains the example of connection and configuration.",
+                  "level": null,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "qYIGsjS5rt",
+                "type": "header",
+                "data": {
+                  "text": "Key features",
+                  "level": 3,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "XV87kJS_H1",
+                "type": "list",
+                "data": {
+                  "text": null,
+                  "level": null,
+                  "style": "unordered",
+                  "items": [
+                    "It is a block-styled editor",
+                    "It returns clean data output in JSON",
+                    "Designed to be extendable and pluggable with a simple API"
+                  ]
+                }
+              },
+              {
+                "id": "AOulAjL8XM",
+                "type": "header",
+                "data": {
+                  "text": "What does it mean «block-styled editor»",
+                  "level": 3,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "cyZjplMOZ0",
+                "type": "paragraph",
+                "data": {
+                  "text": "Workspace in classic editors is made of a single contenteditable element, used to create different HTML markups. Editor.js <mark class='cdx-marker'>workspace consists of separate Blocks: paragraphs, headings, images, lists, quotes, etc</mark>. Each of them is an independent contenteditable element (or more complex structure) provided by Plugin and united by Editor's Core.",
+                  "level": null,
+                  "style": null,
+                  "items": null
+                }
+              }
+            ]
+          },
+          "version": 1
+        }
+      ]
+    },
+    {
+      "id": "85ec1f5c-9a71-4274-bb32-a3ec38d8a5fe",
+      "createdAt": "2023-01-26T11:30:42.624Z",
+      "postedAt": "2023-01-26T11:30:42.576Z",
+      "show": true,
+      "country": null,
+      "version": 1,
+      "articleContent": [
+        {
+          "id": "fbd2d11e-be0d-4d62-a56b-ec04011c33e9",
+          "content": {
+            "time": 1674732566,
+            "version": "2.8.1",
+            "blocks": [
+              {
+                "id": "oUq2g_tl8y",
+                "type": "header",
+                "data": {
+                  "text": "Second Article",
+                  "level": 1,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "zbGZFPM-iI",
+                "type": "paragraph",
+                "data": {
+                  "text": "Hey. Meet the new Editor. On this page you can see it in action — try to edit this text. Source code of the page contains the example of connection and configuration.",
+                  "level": null,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "qYIGsjS5rt",
+                "type": "header",
+                "data": {
+                  "text": "Key features",
+                  "level": 3,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "XV87kJS_H1",
+                "type": "list",
+                "data": {
+                  "text": null,
+                  "level": null,
+                  "style": "unordered",
+                  "items": [
+                    "It is a block-styled editor",
+                    "It returns clean data output in JSON",
+                    "Designed to be extendable and pluggable with a simple API"
+                  ]
+                }
+              },
+              {
+                "id": "AOulAjL8XM",
+                "type": "header",
+                "data": {
+                  "text": "What does it mean «block-styled editor»",
+                  "level": 3,
+                  "style": null,
+                  "items": null
+                }
+              },
+              {
+                "id": "cyZjplMOZ0",
+                "type": "paragraph",
+                "data": {
+                  "text": "Workspace in classic editors is made of a single contenteditable element, used to create different HTML markups. Editor.js <mark class='cdx-marker'>workspace consists of separate Blocks: paragraphs, headings, images, lists, quotes, etc</mark>. Each of them is an independent contenteditable element (or more complex structure) provided by Plugin and united by Editor's Core.",
+                  "level": null,
+                  "style": null,
+                  "items": null
+                }
+              }
+            ]
+          },
+          "version": 1
+        }
+      ]
+    }
+  ],
+  "user": {
+    "id": "a3a8d8e6-462a-4b09-aa33-0f30d1a8a017",
+    "nickname": "mocker"
+  }
+}
