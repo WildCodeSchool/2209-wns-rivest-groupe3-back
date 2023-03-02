@@ -213,6 +213,42 @@ export class ArticleResolver {
     }
   }
 
+  @Query(() => [Article])
+  async getAllArticles(
+    @Arg('limit', { nullable: true }) limit?: number,
+    @Arg('offset', { nullable: true }) offset?: number,
+    @Arg('version', { nullable: true }) version?: number
+  ): Promise<Article[]> {
+    try {
+      const articles = await dataSource.manager.find(Article, {
+        relations: {
+          articleContent: true,
+        },
+        where: {
+          show: true,
+          version,
+        },
+        take: limit,
+        skip: offset,
+      })
+
+      return articles
+    } catch (error) {
+      throw new Error('Article not found')
+    }
+  }
+
+  @Query(() => Number)
+  async getNumberOfArticles(): Promise<number> {
+    try {
+      const count = await dataSource.getRepository(Article).count()
+      return count
+    } catch (err) {
+      console.log(err)
+      throw new Error('Could not retreive number of articles')
+    }
+  }
+
   @Authorized()
   @Mutation(() => Article)
   async updateArticle(
