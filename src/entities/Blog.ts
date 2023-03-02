@@ -34,6 +34,10 @@ export class Blog {
   @Column({ type: 'varchar', unique: true })
   slug: string
 
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  coverUrl: string
+
   @Field()
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date
