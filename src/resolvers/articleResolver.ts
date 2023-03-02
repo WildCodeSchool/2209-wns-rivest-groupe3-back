@@ -48,14 +48,14 @@ export class IContentType {
   time: number
 
   @Field()
-  version: number
+  version: string
 
   @Field((type) => [IContentBlock])
   blocks: IContentBlock[]
 }
 @ArgsType()
 class NewArticleArgs {
-  @Field((type) => String)
+  @Field()
   blogId: string
 
   @Field()
@@ -99,7 +99,15 @@ export class ArticleResolver {
   async createArticle(
     @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Args()
-    { blogId, title, show, postedAt, country, articleContent }: NewArticleArgs
+    {
+      blogId,
+      title,
+      show,
+      version,
+      postedAt,
+      country,
+      articleContent,
+    }: NewArticleArgs
   ): Promise<Article> {
     try {
       const {
@@ -126,7 +134,6 @@ export class ArticleResolver {
         )
 
       const newArticle = new Article()
-      const version = 1
       newArticle.title = title
       newArticle.slug = slugify(title, slugifyOptions)
       newArticle.show = show
