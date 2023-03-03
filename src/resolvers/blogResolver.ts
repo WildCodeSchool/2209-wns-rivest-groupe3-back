@@ -19,6 +19,7 @@ export class BlogResolver {
             blogs: true,
           },
           articles: { articleContent: true },
+          subscriptions: {user: true},
         },
       })
       return blog
@@ -40,6 +41,7 @@ export class BlogResolver {
             blogs: true,
           },
           articles: true,
+          subscriptions: true,
         },
         take: limit,
         skip: offset,
