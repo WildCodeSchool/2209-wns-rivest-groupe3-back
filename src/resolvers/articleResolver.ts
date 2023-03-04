@@ -48,14 +48,14 @@ export class IContentType {
   time: number
 
   @Field()
-  version: number
+  version: string
 
   @Field((type) => [IContentBlock])
   blocks: IContentBlock[]
 }
 @ArgsType()
 class NewArticleArgs {
-  @Field((type) => String)
+  @Field()
   blogId: string
 
   @Field()
@@ -99,7 +99,15 @@ export class ArticleResolver {
   async createArticle(
     @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Args()
-    { blogId, title, show, postedAt, country, articleContent }: NewArticleArgs
+    {
+      blogId,
+      title,
+      show,
+      version,
+      postedAt,
+      country,
+      articleContent,
+    }: NewArticleArgs
   ): Promise<Article> {
     try {
       const {
@@ -126,7 +134,6 @@ export class ArticleResolver {
         )
 
       const newArticle = new Article()
-      const version = 1
       newArticle.title = title
       newArticle.slug = slugify(title, slugifyOptions)
       newArticle.show = show
@@ -203,6 +210,42 @@ export class ArticleResolver {
       })
     } catch (error) {
       throw new Error('Article not found')
+    }
+  }
+
+  @Query(() => [Article])
+  async getAllArticles(
+    @Arg('limit', { nullable: true }) limit?: number,
+    @Arg('offset', { nullable: true }) offset?: number,
+    @Arg('version', { nullable: true }) version?: number
+  ): Promise<Article[]> {
+    try {
+      const articles = await dataSource.manager.find(Article, {
+        relations: {
+          articleContent: true,
+        },
+        where: {
+          show: true,
+          version,
+        },
+        take: limit,
+        skip: offset,
+      })
+
+      return articles
+    } catch (error) {
+      throw new Error('Article not found')
+    }
+  }
+
+  @Query(() => Number)
+  async getNumberOfArticles(): Promise<number> {
+    try {
+      const count = await dataSource.getRepository(Article).count()
+      return count
+    } catch (err) {
+      console.log(err)
+      throw new Error('Could not retreive number of articles')
     }
   }
 

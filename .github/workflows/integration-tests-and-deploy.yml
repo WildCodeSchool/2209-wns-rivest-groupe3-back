@@ -1,6 +1,10 @@
 name: integration-tests-and-deploy
 
-on: push
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   run-tests:
@@ -36,4 +40,5 @@ jobs:
         with:
           push: true
           context: "{{defaultContext}}"
+          file: ./Dockerfile.dev
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tabas-back:latest

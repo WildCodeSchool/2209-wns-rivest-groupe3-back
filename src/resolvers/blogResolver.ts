@@ -23,24 +23,43 @@ export class BlogResolver {
       })
       return blog
     } catch (error) {
+      console.error(error)
       throw new Error('Something went wrong')
     }
   }
 
   @Query(() => [Blog])
-  async getAllBlogs(): Promise<Blog[]> {
+  async getAllBlogs(
+    @Arg('limit', { nullable: true }) limit?: number,
+    @Arg('offset', { nullable: true }) offset?: number
+  ): Promise<Blog[]> {
     try {
       const blogs = await dataSource.manager.find(Blog, {
         relations: {
           user: {
             blogs: true,
           },
+          articles: true,
         },
+        take: limit,
+        skip: offset,
       })
+
       return blogs
     } catch (error) {
       console.error(error)
       throw new Error('Something went wrong')
+    }
+  }
+
+  @Query(() => Number)
+  async getNumberOfBlogs(): Promise<number> {
+    try {
+      const count = await dataSource.getRepository(Blog).count()
+      return count
+    } catch (err) {
+      console.log(err)
+      throw new Error('Could not retreive number of blogs')
     }
   }
 
@@ -105,6 +124,7 @@ export class BlogResolver {
     @Arg('blogSlug') blogSlug: string,
     @Arg('name', { nullable: true }) name?: string,
     @Arg('description', { nullable: true }) description?: string,
+    @Arg('coverUrl', { nullable: true }) coverUrl?: string,
     @Arg('template', { nullable: true }) template?: number
   ): Promise<Blog> {
     try {
@@ -145,6 +165,7 @@ export class BlogResolver {
       }
 
       if (description !== undefined) blogToUpdate.description = description
+      if (coverUrl !== undefined) blogToUpdate.coverUrl = coverUrl
       if (template !== undefined) blogToUpdate.template = template
 
       await dataSource.manager.save(blogToUpdate)
