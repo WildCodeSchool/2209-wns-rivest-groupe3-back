@@ -18,6 +18,10 @@ jobs:
           echo "NODE_ENV=test
           PORT=5555
           JWT_SECRET_KEY=05165447ad9dc0ee73ebd61faeaf0830
+          POSTGRES_DB=postgres
+          PGUSER= postgres
+          POSTGRES_PASSWORD=example
+          PGDATA= /var/lib/postgresql/data/pgdata
           " >> .env.test
       - name: Run tests
         run: npm i && npm run test
@@ -39,6 +43,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          context: "{{defaultContext}}"
+          context: '{{defaultContext}}'
           file: ./Dockerfile.dev
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tabas-back:latest
