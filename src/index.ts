@@ -14,7 +14,7 @@ const start = async (): Promise<void> => {
   await dataSource.initialize()
   await dataSource.runMigrations()
   const schema = await buildSchema({
-    resolvers: [path.join(__dirname, './resolvers/*.ts')],
+    resolvers: [path.join(__dirname, './resolvers/*.*')],
     authChecker: ({ context }) => {
       const { userFromToken: { email } = { email: null } } = context
       if (email === null) return false
