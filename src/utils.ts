@@ -21,8 +21,8 @@ const dataSource = new DataSource({
   password,
   database: 'postgres',
   synchronize: false,
-  entities: [path.join(__dirname, './entities/*.ts')],
-  migrations: [path.join(__dirname, '/migrations/*.ts')],
+  entities: [path.join(__dirname, './entities/*.*')],
+  migrations: [path.join(__dirname, '/migrations/*.*')],
   logging: ['error'],
 })
 
