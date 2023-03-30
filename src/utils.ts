@@ -5,18 +5,40 @@ import { DataSource } from 'typeorm'
 dotenv.config()
 
 const username = process.env.PGUSER
-const password =
-  process.env.NODE_ENV !== 'production'
-    ? 'example'
-    : process.env.POSTGRES_PASSWORD
+const password = process.env.POSTGRES_PASSWORD
 
-const host = process.env.NODE_ENV === 'test' ? 'db-test' : 'db'
-const port = process.env.NODE_ENV === 'test' ? 5433 : 5432
+let host: { address: string; port: number }
+switch (process.env.NODE_ENV) {
+  case 'test':
+    host = {
+      address: 'db-test',
+      port: 5433,
+    }
+    break
+  case 'development':
+    host = {
+      address: 'dev-db',
+      port: 5432,
+    }
+    break
+  case 'staging':
+    host = {
+      address: 'stg-db',
+      port: 5432,
+    }
+    break
+  default:
+    host = {
+      address: 'db',
+      port: 5432,
+    }
+    break
+}
 
 const dataSource = new DataSource({
   type: 'postgres',
-  host,
-  port,
+  host: host.address,
+  port: host.port,
   username,
   password,
   database: 'postgres',
