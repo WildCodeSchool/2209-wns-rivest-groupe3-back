@@ -110,6 +110,28 @@ export const GET_ALL_BLOGS = gql`
   }
 `
 
+export const SUBSCRIBE_TO_A_BLOG = gql`
+  mutation SubscribeToBlog($blogId: String!) {
+    subscribeToBlog(blogId: $blogId) {
+      id
+      createdAt
+      user {
+        nickname
+      }
+      blog {
+        id
+        name
+      }
+    }
+  }
+`
+
+export const UNSUBSCRIBE_TO_A_BLOG = gql`
+  mutation UnsubscribeToBlog($subscribeId: String!, $blogId: String!) {
+    unsubscribeToBlog(subscribeId: $subscribeId, blogId: $blogId)
+  }
+`
+
 // Article Queries
 export const CREATE_ARTICLE = gql`
   mutation CreateArticle(
