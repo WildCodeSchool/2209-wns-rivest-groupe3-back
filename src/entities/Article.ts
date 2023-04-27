@@ -50,6 +50,7 @@ export class Article {
   @Column({ type: 'int' })
   version: number
 
+  @Field(() => Blog)
   @ManyToOne(() => Blog, (blog) => blog.articles, {
     onDelete: 'CASCADE',
   })

@@ -223,6 +223,9 @@ export class ArticleResolver {
       const articles = await dataSource.manager.find(Article, {
         relations: {
           articleContent: true,
+          blog: {
+            user: true
+          }
         },
         where: {
           show: true,
@@ -231,7 +234,6 @@ export class ArticleResolver {
         take: limit,
         skip: offset,
       })
-
       return articles
     } catch (error) {
       throw new Error('Article not found')
