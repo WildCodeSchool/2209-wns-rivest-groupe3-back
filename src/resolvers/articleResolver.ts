@@ -186,11 +186,13 @@ export class ArticleResolver {
           },
         })
       }
-      if (blog.user.id === context.userFromToken.userId) {
+      if (
+        context.userFromToken !== undefined &&
+        blog.user.id === context.userFromToken.userId
+      ) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
           where: {
-            articleContent: { current: true },
             slug,
             blog: { id: blog.id },
           },

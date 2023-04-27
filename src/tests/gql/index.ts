@@ -178,23 +178,24 @@ export const CREATE_ARTICLE = gql`
 `
 
 export const GET_ONE_ARTICLE = gql`
-  query GetOneArticle(
-    $allVersions: Boolean
-    $version: Float
-    $slug: String!
+  query (
     $blogSlug: String!
+    $slug: String!
+    $version: Float
+    $allVersions: Boolean
   ) {
     getOneArticle(
-      allVersions: $allVersions
-      version: $version
-      slug: $slug
       blogSlug: $blogSlug
+      slug: $slug
+      version: $version
+      allVersions: $allVersions
     ) {
       id
       postedAt
       show
       slug
       title
+      coverUrl
       articleContent {
         version
         id
