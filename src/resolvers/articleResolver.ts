@@ -81,6 +81,9 @@ class NewArticleArgs {
 class UpdateArticleArgs extends NewArticleArgs {
   @Field()
   articleId: string
+
+  @Field({ nullable: true })
+  coverUrl: string
 }
 
 @ArgsType()
@@ -160,6 +163,7 @@ export class ArticleResolver {
 
   @Query(() => Article)
   async getOneArticle(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('slug') slug: string,
     @Arg('blogSlug') blogSlug: string,
     @Arg('version', { nullable: true }) version?: number,
@@ -168,6 +172,7 @@ export class ArticleResolver {
   ): Promise<Article> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
+        relations: { user: true },
         where: { slug: blogSlug },
       })
       if (version !== undefined) {
@@ -181,14 +186,13 @@ export class ArticleResolver {
           },
         })
       }
-      if (current ?? false) {
+      if (blog.user.id === context.userFromToken.userId) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
           where: {
             articleContent: { current: true },
             slug,
             blog: { id: blog.id },
-            show: true,
           },
         })
       }
@@ -210,6 +214,7 @@ export class ArticleResolver {
         },
       })
     } catch (error) {
+      console.error(error)
       throw new Error('Article not found')
     }
   }
@@ -222,16 +227,16 @@ export class ArticleResolver {
   ): Promise<Article[]> {
     try {
       const articles = await dataSource.manager.find(Article, {
-        relations: {
-          articleContent: true,
-          blog: {
-            user: true
-          }
-        },
         where: {
           show: true,
           version,
           articleContent: { current: true },
+        },
+        relations: {
+          articleContent: true,
+          blog: {
+            user: true,
+          },
         },
         take: limit,
         skip: offset,
@@ -263,6 +268,7 @@ export class ArticleResolver {
     {
       articleId,
       blogId,
+      coverUrl,
       title,
       show,
       version,
@@ -297,6 +303,7 @@ export class ArticleResolver {
 
       article.show = show
       article.country = country !== undefined ? country : article.country
+      article.coverUrl = coverUrl
 
       // If incoming version is different than db, then article.content has been updated
       if (article.version !== version) {
@@ -311,6 +318,7 @@ export class ArticleResolver {
         newContent.version = version
         newContent.content = articleContent
         newContent.current = true
+        newContent.article = article
 
         const savedContent = await dataSource.manager.save(newContent)
 
@@ -377,7 +385,7 @@ export class ArticleResolver {
       const article = await dataSource.manager.findOneOrFail(Article, {
         where: { id: articleId },
       })
-      await dataSource.manager.delete(Article, article)
+      await dataSource.manager.delete(Article, article.id)
       return 'Article deleted successfully'
     } catch (error: any) {
       console.error(error)
