@@ -157,13 +157,13 @@ export const CREATE_ARTICLE = gql`
 
 export const GET_ONE_ARTICLE = gql`
   query GetOneArticle(
-    $articleId: String
+    $allVersions: Boolean
     $version: Float
     $slug: String!
     $blogSlug: String!
   ) {
     getOneArticle(
-      articleId: $articleId
+      allVersions: $allVersions
       version: $version
       slug: $slug
       blogSlug: $blogSlug

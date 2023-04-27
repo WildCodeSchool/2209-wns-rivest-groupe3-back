@@ -162,8 +162,8 @@ export class ArticleResolver {
   async getOneArticle(
     @Arg('slug') slug: string,
     @Arg('blogSlug') blogSlug: string,
-    @Arg('articleId', { nullable: true }) articleId: string,
     @Arg('version', { nullable: true }) version?: number,
+    @Arg('allVersions', { nullable: true }) allVersions?: boolean,
     @Arg('current', { nullable: true }) current?: boolean
   ): Promise<Article> {
     try {
@@ -192,10 +192,11 @@ export class ArticleResolver {
           },
         })
       }
-      if (articleId !== undefined) {
+      if (allVersions ?? false) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
-          where: { id: articleId, show: true },
+          where: { slug, blog: { id: blog.id }, show: true },
+          order: { articleContent: { version: 'asc' } },
         })
       }
 
@@ -227,6 +228,7 @@ export class ArticleResolver {
         where: {
           show: true,
           version,
+          articleContent: { current: true },
         },
         take: limit,
         skip: offset,
@@ -241,7 +243,9 @@ export class ArticleResolver {
   @Query(() => Number)
   async getNumberOfArticles(): Promise<number> {
     try {
-      const count = await dataSource.getRepository(Article).count()
+      const count = await dataSource.manager.count(Article, {
+        where: { show: true },
+      })
       return count
     } catch (err) {
       console.log(err)
