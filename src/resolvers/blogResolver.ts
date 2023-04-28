@@ -10,18 +10,24 @@ export class BlogResolver {
   @Query(() => Blog)
   async getBlog(@Arg('slug') slug: string): Promise<Blog> {
     try {
-      const blog = await dataSource.manager.findOneOrFail(Blog, {
-        where: {
-          slug,
-        },
+      const blog = await dataSource.manager.findOne(Blog, {
+        where: [
+          {
+            slug,
+            articles: { articleContent: { current: true } },
+          },
+        ],
         relations: {
           user: {
             blogs: true,
           },
           articles: { articleContent: true },
-          subscriptions: {user: true},
+          subscriptions: { user: true },
         },
       })
+      if (blog === null) {
+        throw new Error('Blog introuvable')
+      }
       return blog
     } catch (error) {
       console.error(error)

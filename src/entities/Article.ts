@@ -50,6 +50,10 @@ export class Article {
   @Column({ type: 'int' })
   version: number
 
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  coverUrl: string
+
   @Field(() => Blog)
   @ManyToOne(() => Blog, (blog) => blog.articles, {
     onDelete: 'CASCADE',
