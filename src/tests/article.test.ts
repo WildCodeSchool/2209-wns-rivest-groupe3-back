@@ -234,11 +234,11 @@ describe('Article Resolver', () => {
     expect(res.data?.getOneArticle.articleContent[0].current).toBe(true)
   })
 
-  it('Gets one article by id and should return multiple versions of content', async () => {
+  it('Gets one article with allVersions: true and should return multiple versions of content', async () => {
     const res = await client.query({
       query: GET_ONE_ARTICLE,
       variables: {
-        articleId,
+        allVersions: true,
         slug: articleSlug,
         blogSlug,
       },
