@@ -47,8 +47,15 @@ export class UserResolver {
     @Arg('password', { nullable: true }) password: string
   ): Promise<User> {
     try {
-      const user = await dataSource.manager.findOneBy(User, {
-        id,
+      const user = await dataSource.manager.findOne(User, {
+        where: {
+          id,
+        },
+        relations: {
+          blogs: {
+            user: true,
+          },
+        },
       })
       if (user != null) {
         return user
