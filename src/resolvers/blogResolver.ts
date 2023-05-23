@@ -11,12 +11,9 @@ export class BlogResolver {
   async getBlog(@Arg('slug') slug: string): Promise<Blog> {
     try {
       const blog = await dataSource.manager.findOne(Blog, {
-        where: [
-          {
-            slug,
-            articles: { articleContent: { current: true } },
-          },
-        ],
+        where: {
+          slug,
+        },
         relations: {
           user: {
             blogs: true,
