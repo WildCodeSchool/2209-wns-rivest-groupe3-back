@@ -33,4 +33,34 @@ export class CommentResolver {
       throw new Error('Something went wrong')
     }
   }
+
+  @Authorized()
+  @Mutation(() => Comment)
+  async updateComment(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('content') content: string,
+    @Arg('commentId') commentId: string
+  ): Promise<Comment> {
+    try {
+      if (context?.userFromToken === undefined)
+        throw new Error('You are not authorized to update this comment.')
+
+      const commentToUpdate = await dataSource.manager.findOneOrFail(Comment, {
+        where: { id: commentId },
+      })
+
+      if (commentToUpdate.content !== content) {
+        commentToUpdate.content = content
+      }
+
+      const updatedComment = await dataSource.manager.save(
+        Comment,
+        commentToUpdate
+      )
+      return updatedComment
+    } catch (error) {
+      console.log(error)
+      throw new Error('Something went wrong')
+    }
+  }
 }
