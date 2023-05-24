@@ -308,7 +308,7 @@ export class ArticleResolver {
       article.country = country !== undefined ? country : article.country
       article.coverUrl = coverUrl
 
-      // If incoming version is different than db, then article.content has been updated
+      // If incoming version is different than db, then article.content has been updated, or user has chosen to display previous version
       if (article.version !== version) {
         // start by setting all previous content.current to false
         await dataSource.manager.save(
@@ -318,19 +318,28 @@ export class ArticleResolver {
           })
         )
 
-        const newContent = new Content()
-        newContent.version = version
-        newContent.content = articleContent
-        newContent.current = true
-        newContent.article = article
+        const existingContentVersion = article.articleContent.filter(
+          (content) => content.version === version
+        )[0]
 
-        const savedContent = await dataSource.manager.save(newContent)
+        if (existingContentVersion !== undefined) {
+          existingContentVersion.current = true
+          await dataSource.manager.save(existingContentVersion)
+        } else {
+          const newContent = new Content()
+          newContent.version = version
+          newContent.content = articleContent
+          newContent.current = true
+          newContent.article = article
 
-        // Add new content to array of content versions
-        article.articleContent.push(savedContent)
+          const savedContent = await dataSource.manager.save(newContent)
+
+          // Add new content to array of content versions
+          article.articleContent.push(savedContent)
+        }
+        article.version = version
       }
 
-      article.version = version !== undefined ? version : article.version
       if (article.title !== title) {
         const articleTitleAlreadyExists = await dataSource.manager.find(
           Article,
