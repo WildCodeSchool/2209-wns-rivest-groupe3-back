@@ -95,6 +95,13 @@ class DeleteArticleArgs {
   blogId: string
 }
 
+interface IContext {
+  userFromToken?: {
+    userId: string
+    email: string
+  }
+}
+
 @Resolver(Article)
 export class ArticleResolver {
   @Authorized()
@@ -163,10 +170,9 @@ export class ArticleResolver {
 
   @Query(() => Article)
   async getOneArticle(
-    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Ctx() context: IContext,
     @Arg('slug') slug: string,
     @Arg('blogSlug') blogSlug: string,
-    @Arg('version', { nullable: true }) version?: number,
     @Arg('allVersions', { nullable: true }) allVersions?: boolean,
     @Arg('current', { nullable: true }) current?: boolean
   ): Promise<Article> {
@@ -175,33 +181,26 @@ export class ArticleResolver {
         relations: { user: true },
         where: { slug: blogSlug },
       })
-      if (version !== undefined) {
-        return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
-          where: {
-            articleContent: { version },
-            slug,
-            blog: { id: blog.id },
-            show: true,
-          },
-        })
-      }
+      // Early exit if no user or user isn't owner of blog
       if (
-        context.userFromToken !== undefined &&
-        blog.user.id === context.userFromToken.userId
+        context?.userFromToken === undefined ||
+        context.userFromToken.userId !== blog.user.id
       ) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
           where: {
             slug,
             blog: { id: blog.id },
+            show: true,
+            articleContent: { current: true },
           },
         })
       }
-      if (allVersions ?? false) {
+
+      if (allVersions !== undefined && allVersions) {
         return await dataSource.manager.findOneOrFail(Article, {
           relations: { articleContent: true },
-          where: { slug, blog: { id: blog.id }, show: true },
+          where: { slug, blog: { id: blog.id } },
           order: { articleContent: { version: 'asc' } },
         })
       }
@@ -265,7 +264,7 @@ export class ArticleResolver {
   @Authorized()
   @Mutation(() => Article)
   async updateArticle(
-    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Ctx() context: IContext,
     @Args()
     {
       articleId,
@@ -279,6 +278,8 @@ export class ArticleResolver {
     }: UpdateArticleArgs
   ): Promise<Article> {
     try {
+      if (context?.userFromToken === undefined)
+        throw new Error('You are not authorized to update this article=.')
       const {
         userFromToken: { userId },
       } = context
@@ -289,7 +290,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this article.')
       }
       const article = await dataSource.manager.findOneOrFail(Article, {
         where: { id: articleId },
@@ -307,28 +308,38 @@ export class ArticleResolver {
       article.country = country !== undefined ? country : article.country
       article.coverUrl = coverUrl
 
-      // If incoming version is different than db, then article.content has been updated
+      // If incoming version is different than db, then article.content has been updated, or user has chosen to display previous version
       if (article.version !== version) {
-        // start by setting previous content.current to false
-        await dataSource.manager.update(
-          Content,
-          { id: article.articleContent[article.articleContent.length - 1].id },
-          { current: false }
+        // start by setting all previous content.current to false
+        await dataSource.manager.save(
+          article.articleContent.map((existingContent) => {
+            existingContent.current = false
+            return existingContent
+          })
         )
 
-        const newContent = new Content()
-        newContent.version = version
-        newContent.content = articleContent
-        newContent.current = true
-        newContent.article = article
+        const existingContentVersion = article.articleContent.filter(
+          (content) => content.version === version
+        )[0]
 
-        const savedContent = await dataSource.manager.save(newContent)
+        if (existingContentVersion !== undefined) {
+          existingContentVersion.current = true
+          await dataSource.manager.save(existingContentVersion)
+        } else {
+          const newContent = new Content()
+          newContent.version = version
+          newContent.content = articleContent
+          newContent.current = true
+          newContent.article = article
 
-        // Add new content to array of content versions
-        article.articleContent.push(savedContent)
+          const savedContent = await dataSource.manager.save(newContent)
+
+          // Add new content to array of content versions
+          article.articleContent.push(savedContent)
+        }
+        article.version = version
       }
 
-      article.version = version !== undefined ? version : article.version
       if (article.title !== title) {
         const articleTitleAlreadyExists = await dataSource.manager.find(
           Article,

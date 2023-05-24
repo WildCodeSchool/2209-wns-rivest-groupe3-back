@@ -242,26 +242,15 @@ describe('Article Resolver', () => {
         slug: articleSlug,
         blogSlug,
       },
-    })
-    expect(res.data?.getOneArticle.id).toMatch(uuidRegex)
-    expect(res.data?.getOneArticle.postedAt).toMatch(timeStampStringRegex)
-    expect(res.data?.getOneArticle.articleContent).toBeDefined()
-    expect(res.data?.getOneArticle.articleContent).toHaveLength(2)
-  })
-
-  it('Gets a specific version of the article content by slug and blogSlug', async () => {
-    const res = await client.query({
-      query: GET_ONE_ARTICLE,
-      variables: {
-        version: 1,
-        slug: articleSlug,
-        blogSlug,
+      context: {
+        headers: {
+          authorization: token,
+        },
       },
     })
     expect(res.data?.getOneArticle.id).toMatch(uuidRegex)
     expect(res.data?.getOneArticle.postedAt).toMatch(timeStampStringRegex)
     expect(res.data?.getOneArticle.articleContent).toBeDefined()
-    expect(res.data?.getOneArticle.articleContent).toHaveLength(1)
-    expect(res.data?.getOneArticle.articleContent[0].version).toBe(1)
+    expect(res.data?.getOneArticle.articleContent).toHaveLength(2)
   })
 })
