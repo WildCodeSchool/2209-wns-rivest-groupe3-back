@@ -82,8 +82,6 @@ export class CommentResolver {
         }
       })
 
-      console.log(commentToDelete)
-
       if (commentToDelete.user.id !== context.userFromToken.userId) {
         throw new Error('You are not authorized to delete this comment.')
       }
