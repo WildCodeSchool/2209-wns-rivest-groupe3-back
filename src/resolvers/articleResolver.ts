@@ -16,6 +16,7 @@ import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
 import slugify from 'slugify'
 import { slugifyOptions } from '../config/slugifyOptions'
+import { IContext } from '../interfaces/interfaces'
 
 @InputType()
 class IContentBlockData {
@@ -95,13 +96,6 @@ class DeleteArticleArgs {
   blogId: string
 }
 
-interface IContext {
-  userFromToken?: {
-    userId: string
-    email: string
-  }
-}
-
 @Resolver(Article)
 export class ArticleResolver {
   @Authorized()
@@ -173,8 +167,7 @@ export class ArticleResolver {
     @Ctx() context: IContext,
     @Arg('slug') slug: string,
     @Arg('blogSlug') blogSlug: string,
-    @Arg('allVersions', { nullable: true }) allVersions?: boolean,
-    @Arg('current', { nullable: true }) current?: boolean
+    @Arg('allVersions', { nullable: true }) allVersions?: boolean
   ): Promise<Article> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
@@ -210,7 +203,6 @@ export class ArticleResolver {
         where: {
           slug,
           blog: { id: blog.id },
-          show: true,
           articleContent: { current: true },
         },
       })

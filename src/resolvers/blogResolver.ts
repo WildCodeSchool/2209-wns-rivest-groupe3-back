@@ -4,11 +4,16 @@ import { Blog } from '../entities/Blog'
 import { User } from '../entities/User'
 import slugify from 'slugify'
 import { slugifyOptions } from '../config/slugifyOptions'
+import { IContext } from '../interfaces/interfaces'
+import { Article } from '../entities/Article'
 
 @Resolver(Blog)
 export class BlogResolver {
   @Query(() => Blog)
-  async getBlog(@Arg('slug') slug: string): Promise<Blog> {
+  async getBlog(
+    @Ctx() context: IContext,
+    @Arg('slug') slug: string
+  ): Promise<Blog> {
     try {
       const blog = await dataSource.manager.findOne(Blog, {
         where: {
@@ -25,10 +30,24 @@ export class BlogResolver {
       if (blog === null) {
         throw new Error('Blog introuvable')
       }
+      if (
+        context?.userFromToken === undefined ||
+        context.userFromToken.userId !== blog.user.id
+      ) {
+        const filteredArticles: Article[] = blog.articles.filter(
+          (article) => article.show
+        )
+        blog.articles = filteredArticles.map((article) => {
+          article.articleContent = article.articleContent.filter(
+            (articleContent) => articleContent.current
+          )
+          return article
+        })
+      }
       return blog
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      throw new Error('Something went wrong')
+      throw new Error(error.message)
     }
   }
 
