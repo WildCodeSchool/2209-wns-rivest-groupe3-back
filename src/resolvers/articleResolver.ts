@@ -130,7 +130,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this blog.')
       }
       const articleTitleAlreadyExists = await dataSource.manager.find(Article, {
         where: {
