@@ -30,7 +30,7 @@ export class CommentResolver {
       return newCommentFromDB
     } catch (error) {
       console.log(error)
-      throw new Error('Something went wrong')
+      throw new Error('Something went wrong. Unable to create comment')
     }
   }
 
@@ -60,7 +60,39 @@ export class CommentResolver {
       return updatedComment
     } catch (error) {
       console.log(error)
-      throw new Error('Something went wrong')
+      throw new Error('Something went wrong. Unable to update comment')
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => String)
+  async deleteComment(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Arg('commentId') commentId: string
+  ): Promise<string> {
+    try {
+      if (context?.userFromToken === undefined) {
+        throw new Error('You need to be connected to make action.')
+      }
+
+      const commentToDelete = await dataSource.manager.findOneOrFail(Comment, {
+        where: { id: commentId },
+        relations: {
+          user: true,
+        }
+      })
+
+      console.log(commentToDelete)
+
+      if (commentToDelete.user.id !== context.userFromToken.userId) {
+        throw new Error('You are not authorized to delete this comment.')
+      }
+
+      await dataSource.manager.delete(Comment, commentToDelete.id)
+      return 'Comment deleted successfully'
+    } catch (error) {
+      console.log(error)
+      throw new Error('Something went wrong. Unable to delete comment')
     }
   }
 }
