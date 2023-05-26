@@ -19,7 +19,30 @@ import { slugifyOptions } from '../config/slugifyOptions'
 import { IContext } from '../interfaces/interfaces'
 
 @InputType()
-class IContentBlockData {
+class IContentBlockDataItemImageFile {
+  @Field()
+  url: string
+}
+@InputType()
+class IContentBlockDataItemImage {
+  @Field({ nullable: true })
+  caption?: string
+
+  @Field({ nullable: true })
+  file?: IContentBlockDataItemImageFile
+
+  @Field({ nullable: true })
+  stretched?: boolean
+
+  @Field({ nullable: true })
+  withBackground?: boolean
+
+  @Field({ nullable: true })
+  withBorder?: boolean
+}
+
+@InputType()
+class IContentBlockData extends IContentBlockDataItemImage {
   @Field({ nullable: true })
   text?: string
 
@@ -300,7 +323,7 @@ export class ArticleResolver {
       article.country = country !== undefined ? country : article.country
       article.coverUrl = coverUrl
 
-      // If incoming version is different than db, then article.content has been updated, or user has chosen to display previous version
+      // If incoming version is different than db, then article version has been updated, or user has chosen to display previous version
       if (article.version !== version) {
         // start by setting all previous content.current to false
         await dataSource.manager.save(
@@ -310,27 +333,26 @@ export class ArticleResolver {
           })
         )
 
-        const existingContentVersion = article.articleContent.filter(
-          (content) => content.version === version
-        )[0]
+        const newContent = new Content()
+        newContent.version = version
+        newContent.content = articleContent
+        newContent.current = true
+        newContent.article = article
 
-        if (existingContentVersion !== undefined) {
-          existingContentVersion.current = true
-          await dataSource.manager.save(existingContentVersion)
-        } else {
-          const newContent = new Content()
-          newContent.version = version
-          newContent.content = articleContent
-          newContent.current = true
-          newContent.article = article
+        const savedContent = await dataSource.manager.save(newContent)
 
-          const savedContent = await dataSource.manager.save(newContent)
+        // Add new content to array of content versions
+        article.articleContent.push(savedContent)
 
-          // Add new content to array of content versions
-          article.articleContent.push(savedContent)
-        }
         article.version = version
       }
+
+      const existingContentVersion = article.articleContent.filter(
+        (content) => content.version === version
+      )[0]
+      existingContentVersion.content = articleContent
+      existingContentVersion.current = true
+      await dataSource.manager.save(existingContentVersion)
 
       if (article.title !== title) {
         const articleTitleAlreadyExists = await dataSource.manager.find(

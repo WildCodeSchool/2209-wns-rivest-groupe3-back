@@ -3,7 +3,31 @@ import { Field, ObjectType } from 'type-graphql'
 import { Article } from './Article'
 
 @ObjectType()
-class ContentBlockDataType {
+class ContentBlockDataItemImageFile {
+  @Field()
+  url: string
+}
+
+@ObjectType()
+class ContentBlockDataItemImage {
+  @Field({ nullable: true })
+  caption?: string
+
+  @Field({ nullable: true })
+  file?: ContentBlockDataItemImageFile
+
+  @Field({ nullable: true })
+  stretched?: boolean
+
+  @Field({ nullable: true })
+  withBackground?: boolean
+
+  @Field({ nullable: true })
+  withBorder?: boolean
+}
+
+@ObjectType()
+class ContentBlockDataType extends ContentBlockDataItemImage {
   @Field({ nullable: true })
   text?: string
 
