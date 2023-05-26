@@ -37,13 +37,14 @@ export class BlogResolver {
         const filteredArticles: Article[] = blog.articles.filter(
           (article) => article.show
         )
-        blog.articles = filteredArticles.map((article) => {
-          article.articleContent = article.articleContent.filter(
-            (articleContent) => articleContent.current
-          )
-          return article
-        })
+        blog.articles = filteredArticles
       }
+      blog.articles = blog.articles.map((article) => {
+        article.articleContent = article.articleContent.filter(
+          (articleContent) => articleContent.current
+        )
+        return article
+      })
       return blog
     } catch (error: any) {
       console.error(error)
