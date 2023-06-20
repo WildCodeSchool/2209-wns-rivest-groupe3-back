@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
 } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
@@ -22,6 +23,10 @@ export class Comment {
   createdAt: Date
 
   @Field()
+  @UpdateDateColumn({ type: 'timestamp with time zone',  nullable: true })
+  updatedAt: Date
+
+  @Field()
   @Column({ type: 'varchar' })
   content: string
 
@@ -30,6 +35,7 @@ export class Comment {
   })
   article: Article
 
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.comments, {
     onDelete: 'CASCADE',
   })

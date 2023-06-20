@@ -147,7 +147,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this blog.')
       }
       const articleTitleAlreadyExists = await dataSource.manager.find(Article, {
         where: {
@@ -203,7 +203,12 @@ export class ArticleResolver {
         context.userFromToken.userId !== blog.user.id
       ) {
         return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
+          relations: {
+            articleContent: true,
+            comments: {
+              user: true,
+            },
+          },
           where: {
             slug,
             blog: { id: blog.id },
@@ -215,14 +220,24 @@ export class ArticleResolver {
 
       if (allVersions !== undefined && allVersions) {
         return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
+          relations: {
+            articleContent: true,
+            comments: {
+              user: true,
+            },
+          },
           where: { slug, blog: { id: blog.id } },
           order: { articleContent: { version: 'asc' } },
         })
       }
 
       return await dataSource.manager.findOneOrFail(Article, {
-        relations: { articleContent: true },
+        relations: {
+          articleContent: true,
+          comments: {
+            user: true,
+          },
+        },
         where: {
           slug,
           blog: { id: blog.id },
@@ -407,7 +422,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this blog.')
       }
       const article = await dataSource.manager.findOneOrFail(Article, {
         where: { id: articleId },

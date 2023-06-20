@@ -179,7 +179,7 @@ describe('Article Resolver', () => {
     const errorMessage = res.errors?.[0]?.message
     expect(res.errors).toHaveLength(1)
     expect(errorMessage).toBe(
-      'Error: You are not authorized to update this blog..'
+      'Error: You are not authorized to update this blog.'
     )
   })
 
