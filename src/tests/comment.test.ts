@@ -192,6 +192,6 @@ describe('Comment Resolver', () => {
       },
     })
 
-    expect(res.data?.deleteComment).toBe(undefined)
+    expect(res.data?.deleteComment).toBe("Comment deleted successfully")
   })
 })
