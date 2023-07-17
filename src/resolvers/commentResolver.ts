@@ -9,12 +9,13 @@ export class CommentResolver {
   @Authorized()
   @Mutation(() => Comment)
   async commentArticle(
-    @Ctx() context: { userId: string; email: string },
+    @Ctx() context: {userFromToken: { userId: string; email: string }},
     @Arg('content') content: string,
     @Arg('articleId') articleId: string
   ): Promise<Comment> {
     try {
-      const { userId } = context
+      const {userFromToken: {userId}} = context
+      console.log(userId)
       const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })

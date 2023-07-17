@@ -12,15 +12,15 @@ import {
 } from './gql'
 import { IContentType } from '../resolvers/articleResolver'
 
-const articleTestUserInfo = {
-  email: 'article-test-user@test.com',
+const commentTestUserInfo = {
+  email: 'article-test-user-for-comments@test.com',
   password: 'test',
-  nickname: 'article-test',
+  nickname: 'comment-test',
 }
-const articleTestUserInfo2 = {
-  email2: 'article-test-user-2@test.com',
+const commentTestUserInfo2 = {
+  email2: 'article-test-user-for-comments-2@test.com',
   password2: 'test',
-  nickname2: 'article-test-2',
+  nickname2: 'comment-test-2',
 }
 
 const articleContent: IContentType = {
@@ -44,7 +44,7 @@ const uuidRegex =
 const timeStampStringRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/
 
 describe('Comment Resolver', () => {
-  const { email, password, nickname } = articleTestUserInfo
+  const { email, password, nickname } = commentTestUserInfo
   let token: string
   let blogId: string
   let blogSlug: string
@@ -52,7 +52,7 @@ describe('Comment Resolver', () => {
   let articleId: string
   let commentId: string
 
-  const { email2, password2, nickname2 } = articleTestUserInfo2
+  const { email2, password2, nickname2 } = commentTestUserInfo2
 
   beforeAll(async () => {
     await clearAllEntities()
@@ -192,6 +192,6 @@ describe('Comment Resolver', () => {
       },
     })
 
-    expect(res.data?.deleteComment).toBe(undefined)
+    expect(res.data?.deleteComment).toBe("Comment deleted successfully")
   })
 })
