@@ -9,13 +9,14 @@ export class CommentResolver {
   @Authorized()
   @Mutation(() => Comment)
   async commentArticle(
-    @Ctx() context: {userFromToken: { userId: string; email: string }},
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
     @Arg('content') content: string,
     @Arg('articleId') articleId: string
   ): Promise<Comment> {
     try {
-      const {userFromToken: {userId}} = context
-      console.log(userId)
+      const {
+        userFromToken: { userId },
+      } = context
       const user = await dataSource.manager.findOneByOrFail(User, {
         id: userId,
       })
@@ -30,7 +31,7 @@ export class CommentResolver {
       const newCommentFromDB = await dataSource.manager.save(newComment)
       return newCommentFromDB
     } catch (error) {
-      console.log(error)
+      console.error(error)
       throw new Error('Something went wrong. Unable to create comment')
     }
   }
@@ -80,7 +81,7 @@ export class CommentResolver {
         where: { id: commentId },
         relations: {
           user: true,
-        }
+        },
       })
 
       if (commentToDelete.user.id !== context.userFromToken.userId) {

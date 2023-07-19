@@ -250,6 +250,36 @@ export class ArticleResolver {
     }
   }
 
+  @Query(() => Article)
+  async getOneArticleComments(
+    @Arg('slug') slug: string,
+    @Arg('blogSlug') blogSlug: string
+  ): Promise<Article> {
+    try {
+      const blog = await dataSource.manager.findOneOrFail(Blog, {
+        relations: { user: true },
+        where: { slug: blogSlug },
+      })
+
+      return await dataSource.manager.findOneOrFail(Article, {
+        relations: {
+          articleContent: true,
+          comments: {
+            user: true,
+          },
+        },
+        where: {
+          slug,
+          blog: { id: blog.id },
+          articleContent: { current: true },
+        },
+      })
+    } catch (error) {
+      console.error(error)
+      throw new Error('Article not found')
+    }
+  }
+
   @Query(() => [Article])
   async getAllArticles(
     @Arg('limit', { nullable: true }) limit?: number,
