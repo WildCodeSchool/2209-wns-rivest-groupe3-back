@@ -14,3 +14,9 @@ export interface IContent {
   blocks: IContentBlock[]
   version: string
 }
+export interface IContext {
+  userFromToken?: {
+    userId: string
+    email: string
+  }
+}

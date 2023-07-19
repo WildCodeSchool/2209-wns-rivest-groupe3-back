@@ -8,6 +8,7 @@ import {
 import { Field, ObjectType } from 'type-graphql'
 import { Blog } from './Blog'
 import { Comment } from './Comment'
+import { SubscriptionUserBlog } from './SubscriptionUserBlog'
 
 @ObjectType()
 @Entity()
@@ -62,4 +63,8 @@ export class User {
   @Field(() => [Comment])
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[]
+
+  @Field(() => [SubscriptionUserBlog], { nullable: true })
+  @OneToMany(() => SubscriptionUserBlog, (subscription) => subscription.user)
+  subscribedBlog: SubscriptionUserBlog[]
 }

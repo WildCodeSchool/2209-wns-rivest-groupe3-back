@@ -16,9 +16,33 @@ import { Article } from '../entities/Article'
 import { Content } from '../entities/Content'
 import slugify from 'slugify'
 import { slugifyOptions } from '../config/slugifyOptions'
+import { IContext } from '../interfaces/interfaces'
 
 @InputType()
-class IContentBlockData {
+class IContentBlockDataItemImageFile {
+  @Field()
+  url: string
+}
+@InputType()
+class IContentBlockDataItemImage {
+  @Field({ nullable: true })
+  caption?: string
+
+  @Field({ nullable: true })
+  file?: IContentBlockDataItemImageFile
+
+  @Field({ nullable: true })
+  stretched?: boolean
+
+  @Field({ nullable: true })
+  withBackground?: boolean
+
+  @Field({ nullable: true })
+  withBorder?: boolean
+}
+
+@InputType()
+class IContentBlockData extends IContentBlockDataItemImage {
   @Field({ nullable: true })
   text?: string
 
@@ -81,6 +105,9 @@ class NewArticleArgs {
 class UpdateArticleArgs extends NewArticleArgs {
   @Field()
   articleId: string
+
+  @Field({ nullable: true })
+  coverUrl: string
 }
 
 @ArgsType()
@@ -120,7 +147,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this blog.')
       }
       const articleTitleAlreadyExists = await dataSource.manager.find(Article, {
         where: {
@@ -160,55 +187,65 @@ export class ArticleResolver {
 
   @Query(() => Article)
   async getOneArticle(
+    @Ctx() context: IContext,
     @Arg('slug') slug: string,
     @Arg('blogSlug') blogSlug: string,
-    @Arg('articleId', { nullable: true }) articleId: string,
-    @Arg('version', { nullable: true }) version?: number,
-    @Arg('current', { nullable: true }) current?: boolean
+    @Arg('allVersions', { nullable: true }) allVersions?: boolean
   ): Promise<Article> {
     try {
       const blog = await dataSource.manager.findOneOrFail(Blog, {
+        relations: { user: true },
         where: { slug: blogSlug },
       })
-      if (version !== undefined) {
+      // Early exit if no user or user isn't owner of blog
+      if (
+        context?.userFromToken === undefined ||
+        context.userFromToken.userId !== blog.user.id
+      ) {
         return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
+          relations: {
+            articleContent: true,
+            comments: {
+              user: true,
+            },
+          },
           where: {
-            articleContent: { version },
             slug,
             blog: { id: blog.id },
             show: true,
-          },
-        })
-      }
-      if (current ?? false) {
-        return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
-          where: {
             articleContent: { current: true },
-            slug,
-            blog: { id: blog.id },
-            show: true,
           },
         })
       }
-      if (articleId !== undefined) {
+
+      if (allVersions !== undefined && allVersions) {
         return await dataSource.manager.findOneOrFail(Article, {
-          relations: { articleContent: true },
-          where: { id: articleId, show: true },
+          relations: {
+            articleContent: true,
+            comments: {
+              user: true,
+            },
+          },
+          where: { slug, blog: { id: blog.id } },
+          order: { articleContent: { version: 'asc' } },
         })
       }
 
       return await dataSource.manager.findOneOrFail(Article, {
-        relations: { articleContent: true },
+        relations: {
+          articleContent: true,
+          comments: {
+            user: true,
+          },
+        },
         where: {
           slug,
           blog: { id: blog.id },
-          show: true,
           articleContent: { current: true },
         },
       })
     } catch (error) {
+      console.error(error)
       throw new Error('Article not found')
     }
   }
@@ -221,17 +258,20 @@ export class ArticleResolver {
   ): Promise<Article[]> {
     try {
       const articles = await dataSource.manager.find(Article, {
-        relations: {
-          articleContent: true,
-        },
         where: {
           show: true,
           version,
+          articleContent: { current: true },
+        },
+        relations: {
+          articleContent: true,
+          blog: {
+            user: true,
+          },
         },
         take: limit,
         skip: offset,
       })
-
       return articles
     } catch (error) {
       throw new Error('Article not found')
@@ -241,7 +281,9 @@ export class ArticleResolver {
   @Query(() => Number)
   async getNumberOfArticles(): Promise<number> {
     try {
-      const count = await dataSource.getRepository(Article).count()
+      const count = await dataSource.manager.count(Article, {
+        where: { show: true },
+      })
       return count
     } catch (err) {
       console.log(err)
@@ -252,11 +294,12 @@ export class ArticleResolver {
   @Authorized()
   @Mutation(() => Article)
   async updateArticle(
-    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Ctx() context: IContext,
     @Args()
     {
       articleId,
       blogId,
+      coverUrl,
       title,
       show,
       version,
@@ -265,6 +308,8 @@ export class ArticleResolver {
     }: UpdateArticleArgs
   ): Promise<Article> {
     try {
+      if (context?.userFromToken === undefined)
+        throw new Error('You are not authorized to update this article=.')
       const {
         userFromToken: { userId },
       } = context
@@ -275,7 +320,7 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this article.')
       }
       const article = await dataSource.manager.findOneOrFail(Article, {
         where: { id: articleId },
@@ -291,28 +336,39 @@ export class ArticleResolver {
 
       article.show = show
       article.country = country !== undefined ? country : article.country
+      article.coverUrl = coverUrl
 
-      // If incoming version is different than db, then article.content has been updated
+      // If incoming version is different than db, then article version has been updated, or user has chosen to display previous version
       if (article.version !== version) {
-        // start by setting previous content.current to false
-        await dataSource.manager.update(
-          Content,
-          { id: article.articleContent[article.articleContent.length - 1].id },
-          { current: false }
+        // start by setting all previous content.current to false
+        await dataSource.manager.save(
+          article.articleContent.map((existingContent) => {
+            existingContent.current = false
+            return existingContent
+          })
         )
 
         const newContent = new Content()
         newContent.version = version
         newContent.content = articleContent
         newContent.current = true
+        newContent.article = article
 
         const savedContent = await dataSource.manager.save(newContent)
 
         // Add new content to array of content versions
         article.articleContent.push(savedContent)
+
+        article.version = version
       }
 
-      article.version = version !== undefined ? version : article.version
+      const existingContentVersion = article.articleContent.filter(
+        (content) => content.version === version
+      )[0]
+      existingContentVersion.content = articleContent
+      existingContentVersion.current = true
+      await dataSource.manager.save(existingContentVersion)
+
       if (article.title !== title) {
         const articleTitleAlreadyExists = await dataSource.manager.find(
           Article,
@@ -366,12 +422,12 @@ export class ArticleResolver {
         },
       })
       if (blog.user.id !== userId) {
-        throw new Error('You are not authorized to update this blog..')
+        throw new Error('You are not authorized to update this blog.')
       }
       const article = await dataSource.manager.findOneOrFail(Article, {
         where: { id: articleId },
       })
-      await dataSource.manager.delete(Article, article)
+      await dataSource.manager.delete(Article, article.id)
       return 'Article deleted successfully'
     } catch (error: any) {
       console.error(error)

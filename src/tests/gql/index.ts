@@ -110,6 +110,28 @@ export const GET_ALL_BLOGS = gql`
   }
 `
 
+export const SUBSCRIBE_TO_A_BLOG = gql`
+  mutation SubscribeToBlog($blogId: String!) {
+    subscribeToBlog(blogId: $blogId) {
+      id
+      createdAt
+      user {
+        nickname
+      }
+      blog {
+        id
+        name
+      }
+    }
+  }
+`
+
+export const UNSUBSCRIBE_TO_A_BLOG = gql`
+  mutation UnsubscribeToBlog($subscribeId: String!, $blogId: String!) {
+    unsubscribeToBlog(subscribeId: $subscribeId, blogId: $blogId)
+  }
+`
+
 // Article Queries
 export const CREATE_ARTICLE = gql`
   mutation CreateArticle(
@@ -156,23 +178,14 @@ export const CREATE_ARTICLE = gql`
 `
 
 export const GET_ONE_ARTICLE = gql`
-  query GetOneArticle(
-    $articleId: String
-    $version: Float
-    $slug: String!
-    $blogSlug: String!
-  ) {
-    getOneArticle(
-      articleId: $articleId
-      version: $version
-      slug: $slug
-      blogSlug: $blogSlug
-    ) {
+  query ($blogSlug: String!, $slug: String!, $allVersions: Boolean) {
+    getOneArticle(blogSlug: $blogSlug, slug: $slug, allVersions: $allVersions) {
       id
       postedAt
       show
       slug
       title
+      coverUrl
       articleContent {
         version
         id
@@ -239,5 +252,52 @@ export const UPDATE_ARTICLE = gql`
         version
       }
     }
+  }
+`
+// Comment Queries
+export const CREATE_COMMENT = gql`
+  mutation CommentArticle($articleId: String!, $content: String!) {
+    commentArticle(articleId: $articleId, content: $content) {
+      id
+      content
+      createdAt
+      updatedAt
+      user {
+        nickname
+        id
+      }
+    }
+  }
+`
+export const GET_ALL_COMMENTS_OF_AN_ARTICLE = gql`
+  query GetOneArticle($blogSlug: String!, $slug: String!) {
+    getOneArticle(blogSlug: $blogSlug, slug: $slug) {
+      id
+      comments {
+        id
+        content
+        createdAt
+        updatedAt
+        user {
+          nickname
+          id
+        }
+      }
+    }
+  }
+`
+
+export const UPDATE_COMMENT = gql`
+  mutation UpdateComment($commentId: String!, $content: String!) {
+    updateComment(commentId: $commentId, content: $content) {
+      content
+      updatedAt
+    }
+  }
+`
+
+export const DELETE_COMMENT = gql`
+  mutation DeleteComment($commentId: String!) {
+    deleteComment(commentId: $commentId)
   }
 `

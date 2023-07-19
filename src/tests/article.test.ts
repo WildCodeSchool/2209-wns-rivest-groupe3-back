@@ -179,7 +179,7 @@ describe('Article Resolver', () => {
     const errorMessage = res.errors?.[0]?.message
     expect(res.errors).toHaveLength(1)
     expect(errorMessage).toBe(
-      'Error: You are not authorized to update this blog..'
+      'Error: You are not authorized to update this blog.'
     )
   })
 
@@ -234,34 +234,23 @@ describe('Article Resolver', () => {
     expect(res.data?.getOneArticle.articleContent[0].current).toBe(true)
   })
 
-  it('Gets one article by id and should return multiple versions of content', async () => {
+  it('Gets one article with allVersions: true and should return multiple versions of content', async () => {
     const res = await client.query({
       query: GET_ONE_ARTICLE,
       variables: {
-        articleId,
+        allVersions: true,
         slug: articleSlug,
         blogSlug,
+      },
+      context: {
+        headers: {
+          authorization: token,
+        },
       },
     })
     expect(res.data?.getOneArticle.id).toMatch(uuidRegex)
     expect(res.data?.getOneArticle.postedAt).toMatch(timeStampStringRegex)
     expect(res.data?.getOneArticle.articleContent).toBeDefined()
     expect(res.data?.getOneArticle.articleContent).toHaveLength(2)
-  })
-
-  it('Gets a specific version of the article content by slug and blogSlug', async () => {
-    const res = await client.query({
-      query: GET_ONE_ARTICLE,
-      variables: {
-        version: 1,
-        slug: articleSlug,
-        blogSlug,
-      },
-    })
-    expect(res.data?.getOneArticle.id).toMatch(uuidRegex)
-    expect(res.data?.getOneArticle.postedAt).toMatch(timeStampStringRegex)
-    expect(res.data?.getOneArticle.articleContent).toBeDefined()
-    expect(res.data?.getOneArticle.articleContent).toHaveLength(1)
-    expect(res.data?.getOneArticle.articleContent[0].version).toBe(1)
   })
 })

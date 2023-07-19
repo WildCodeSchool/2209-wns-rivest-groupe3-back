@@ -44,6 +44,7 @@ const start = async (): Promise<void> => {
         }
       }
     },
+    csrfPrevention: true,
   })
 
   try {
