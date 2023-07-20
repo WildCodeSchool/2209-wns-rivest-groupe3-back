@@ -45,6 +45,7 @@ const start = async (): Promise<void> => {
       }
     },
     csrfPrevention: true,
+    cors: { origin: '*', credentials: true },
   })
 
   try {
