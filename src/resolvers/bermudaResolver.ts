@@ -1,7 +1,23 @@
-import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import {
+  Arg,
+  Args,
+  ArgsType,
+  Authorized,
+  Ctx,
+  Field,
+  Mutation,
+  Query,
+  Resolver,
+} from 'type-graphql'
 import dataSource from '../utils'
 import { Bermuda } from '../entities/Bermuda'
 import { User } from '../entities/User'
+
+@ArgsType()
+class DeleteBermudaArgs {
+  @Field()
+  bermudaId: string
+}
 
 @Resolver(Bermuda)
 export class BermudaResolver {
@@ -44,6 +60,33 @@ export class BermudaResolver {
     } catch (error) {
       console.error(error)
       throw new Error('Something went wrong')
+    }
+  }
+
+  @Authorized()
+  @Mutation(() => String)
+  async deleteBermuda(
+    @Ctx() context: { userFromToken: { userId: string; email: string } },
+    @Args() { bermudaId }: DeleteBermudaArgs
+  ): Promise<string> {
+    try {
+      const {
+        userFromToken: { userId },
+      } = context
+      const bermuda = await dataSource.manager.findOneOrFail(Bermuda, {
+        where: { id: bermudaId },
+        relations: {
+          user: true,
+        },
+      })
+      if (bermuda.user.id !== userId) {
+        throw new Error('You are not authorized to delete this bermuda.')
+      }
+      await dataSource.manager.delete(Bermuda, bermudaId)
+      return 'Bermuda deleted successfully'
+    } catch (error: any) {
+      console.error(error)
+      throw new Error(error)
     }
   }
 }
