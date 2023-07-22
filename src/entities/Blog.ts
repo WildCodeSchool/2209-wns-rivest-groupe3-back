@@ -9,7 +9,6 @@ import {
 import { Field, ObjectType } from 'type-graphql'
 import { User } from './User'
 import { Article } from './Article'
-import { Comment } from './Comment'
 import { SubscriptionUserBlog } from './SubscriptionUserBlog'
 
 @ObjectType()
@@ -52,10 +51,6 @@ export class Blog {
   @Field(() => [Article])
   @OneToMany(() => Article, (article) => article.blog)
   articles: Article[]
-
-  @Field(() => [Comment])
-  @OneToMany(() => Comment, (comment) => comment.blog)
-  comments: Comment[]
 
   @Field(() => [SubscriptionUserBlog], { nullable: true })
   @OneToMany(() => SubscriptionUserBlog, (subscription) => subscription.blog)

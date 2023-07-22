@@ -27,6 +27,12 @@ switch (process.env.NODE_ENV) {
       port: 5432,
     }
     break
+  case 'local':
+    host = {
+      address: 'localhost',
+      port: 5432,
+    }
+    break
   default:
     host = {
       address: 'db',

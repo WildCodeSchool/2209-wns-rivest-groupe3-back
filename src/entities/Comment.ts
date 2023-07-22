@@ -9,7 +9,6 @@ import {
 import { Field, ObjectType } from 'type-graphql'
 import { Article } from './Article'
 import { User } from './User'
-import { Blog } from './Blog'
 
 @ObjectType()
 @Entity()
@@ -23,7 +22,7 @@ export class Comment {
   createdAt: Date
 
   @Field()
-  @UpdateDateColumn({ type: 'timestamp with time zone',  nullable: true })
+  @UpdateDateColumn({ type: 'timestamp with time zone', nullable: true })
   updatedAt: Date
 
   @Field()
@@ -40,9 +39,4 @@ export class Comment {
     onDelete: 'CASCADE',
   })
   user: User
-
-  @ManyToOne(() => Blog, (blog) => blog.comments, {
-    onDelete: 'CASCADE',
-  })
-  blog: Blog
 }

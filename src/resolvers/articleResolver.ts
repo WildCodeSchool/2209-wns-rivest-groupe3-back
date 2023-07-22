@@ -85,19 +85,19 @@ class NewArticleArgs {
   @Field()
   title: string
 
-  @Field()
-  show: boolean
+  @Field({ nullable: true })
+  show?: boolean
 
   @Field()
   version: number
 
   @Field({ nullable: true })
-  postedAt: Date
+  postedAt?: Date
 
   @Field({ nullable: true })
-  country: string
+  country?: string
 
-  @Field()
+  @Field({ nullable: true })
   articleContent: IContentType
 }
 
@@ -163,10 +163,10 @@ export class ArticleResolver {
       const newArticle = new Article()
       newArticle.title = title
       newArticle.slug = slugify(title, slugifyOptions)
-      newArticle.show = show
-      newArticle.country = country
+      newArticle.show = (show ?? false) || false
+      newArticle.country = country ?? ''
       newArticle.version = version
-      newArticle.postedAt = postedAt === undefined ? new Date() : postedAt
+      newArticle.postedAt = postedAt ?? new Date()
 
       const newContent = new Content()
       newContent.version = version
@@ -362,9 +362,10 @@ export class ArticleResolver {
       // If article.show from db is false, and incoming update sets article.show to true,
       // it would mean that user is changing status from unpublished to publish,
       // so we must set postedAt to now
-      article.postedAt = !article.show && show ? new Date() : article.postedAt
+      article.postedAt =
+        !article.show && show === true ? new Date() : article.postedAt
 
-      article.show = show
+      article.show = show ?? false
       article.country = country !== undefined ? country : article.country
       article.coverUrl = coverUrl
 
